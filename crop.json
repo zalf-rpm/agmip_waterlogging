@@ -1,0 +1,57 @@
+{
+    "crops": {
+        "WW": {
+            "is-winter-crop": false, 
+            "residueParams": ["include-from-file", "monica-parameters/crop-residues/wheat.json"],
+            "cropParams": {
+                "cultivar": ["include-from-file", "monica-parameters/crops/wheat/spring-wheat.json"],
+                "species": ["include-from-file", "monica-parameters/crops/wheat.json"]
+            }
+        }
+    }, 
+
+	"fert_template": {
+		"date": "0001-04-03",
+		"type": "MineralFertilization",
+		"amount": [40.0, "kg N"],
+		"partition": {  
+			"Carbamid":0,
+			"NH4":0.5,
+			"NO3":0.5
+		  }
+	},
+
+	"irrig_template": {
+		"date": "0001-05-05",
+		"type": "Irrigation",
+		"amount": [1.0, "mm"],
+		"parameters": {
+			"nitrateConcentration": [0.0, "mg dm-3"],
+			"sulfateConcentration": [334, "mg dm-3"]
+		}
+	},
+
+    "cropRotation": [
+        {
+            "worksteps": [
+                { 
+					"type": "Sowing", 
+					"crop": ["ref", "crops", "WW"],
+					"date": "0000-01-01"
+				},
+				{ 
+					"type": "AutomaticHarvest", 
+					"latest-date": "0001-09-05",
+					"min-%-asw": 0,
+					"max-%-asw": 40,
+					"max-3d-precip-sum": 4,
+					"max-curr-day-precip": 0.1,
+					"harvest-time": "maturity"
+				}
+            ]
+        }
+    ], 
+    "CropParameters": {
+        "=": ["include-from-file", "monica-parameters/general/crop.json"]
+    }
+}

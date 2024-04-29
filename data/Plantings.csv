@@ -1,0 +1,15 @@
+Treatment_number,replicate_number,planting_date,crop_ident_ICASA,cultivar_name,plant_pop_at_planting,plant_pop_at_emergence,row_spacing,row_direction,planting_depth
+TRTNO,RP,PDATE,CRID,CUL_NAME,PLPOP,PLPOE,PLRS,PLRD,PLDP
+1,1,2014-08-14,WHB,soissons,320,,17,,2
+2,1,2014-08-14,WHB,soissons,320,,17,,2
+3,1,2013-08-21,WHB,soissons,320,,17,,2
+4,1,2013-08-21,WHB,soissons,320,,17,,2
+5,1,2011-12-13,WHB,soissons,340,,8.4,,2
+6,1,2011-12-13,WHB,soissons,340,,8.4,,2
+7,1,2011-12-13,WHB,soissons,340,,8.4,,2
+8,1,2011-12-13,WHB,soissons,340,,8.4,,2
+9,1,2011-12-13,WHB,soissons,340,,8.4,,2
+10,1,2011-12-13,WHB,soissons,340,,8.4,,2
+11,1,2011-12-13,WHB,soissons,340,,8.4,,2
+12,1,2011-12-13,WHB,soissons,340,,8.4,,2
+13,1,2011-12-13,WHB,soissons,340,,8.4,,2

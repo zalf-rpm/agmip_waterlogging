@@ -1,0 +1,2 @@
+Treatment_number;replicate_number;DATE;soil_layer_top_depth;soil_layer_bot_depth;soil_water_by_layer;soil_nitrogen_by_layer;NO3_soil_by_layer;NH4_soil_by_layer
+TRTNO;RP;DATE;SLDUB;SLDLB;SWLD;NSLD1;NOSLD;NHSLD
