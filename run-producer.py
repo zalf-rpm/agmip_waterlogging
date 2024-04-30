@@ -38,8 +38,8 @@ def run_producer(server=None, port=None):
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
-        #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
-        "monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
+        #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -84,16 +84,16 @@ def run_producer(server=None, port=None):
             prev_depth_m = current_depth_m
             layer = {
                 "Thickness": [thickness, "m"],
-                "PoreVolume": [float(line[2]), "m3/m3"],
-                "FieldCapacity": [float(line[3]), "m3/m3"],
-                "PermanentWiltingPoint": [float(line[5]), "m3/m3"],
-                "Lambda": float(line[9]),
+                #"PoreVolume": [float(line[2]), "m3/m3"],
+                #"FieldCapacity": [float(line[3]), "m3/m3"],
+                #"PermanentWiltingPoint": [float(line[5]), "m3/m3"],
+                #"Lambda": float(line[9]),
                 "SoilBulkDensity": [float(line[10])*1000.0, "kg/m3"],
                 "SoilOrganicCarbon": [float(line[11]), "%"],
                 "Clay": [float(line[12])/100.0, "m3/m3"],
                 "Sand": [float(line[14])/100.0, "m3/m3"],
                 #"Sceleton": [float(line[15]), "m3/m3"],
-                "pH": float(line[18])
+                #"pH": float(line[18])
             }
             soil_profiles[soil_name].append(layer)
 
@@ -173,9 +173,9 @@ def run_producer(server=None, port=None):
         worksteps : list = env_template["cropRotation"][0]["worksteps"]
         for date in sorted(dates):
             if date in trt_no_to_fertilizers[trt_no]:
-                worksteps.insert(-2, trt_no_to_fertilizers[trt_no][date])
+                worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
             if date in trt_no_to_irrigation[trt_no]:
-                worksteps.insert(-2, trt_no_to_irrigation[trt_no][date])
+                worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
 
         env_template["customId"] = {
             "nodata": False,
@@ -189,6 +189,7 @@ def run_producer(server=None, port=None):
     env_template["customId"] = {
         "no_of_trts": no_of_trts,
         "nodata": True,
+        "soil_name": meta['SOIL_NAME']
     }
     socket.send_json(env_template)
     print(f"{os.path.basename(__file__)} done")

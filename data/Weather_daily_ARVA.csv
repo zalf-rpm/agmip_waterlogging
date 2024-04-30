@@ -1,4 +1,3 @@
-weather_station_code;weather_date;solar_radiation;maximum_temperature;minimum_temperature;rain_snow_fall;temperature_dewpoint;wind_speed_daily (m/s);realtive_humidity_avg
 WST_ID;W_DATE;SRAD;TMAX;TMIN;RAIN;TDEW;WIND;RHAVD
 ARVA;2013-01-01;2,49;8,80;-0,50;3,20;;3,23;96,06
 ARVA;2013-01-02;2,79;6,90;-2,80;0,80;;2,39;97,31

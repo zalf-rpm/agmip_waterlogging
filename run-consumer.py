@@ -48,6 +48,7 @@ def run_consumer(server=None, port=None):
             print(f"{os.path.basename(__file__)} Couldn't create dir {path_to_out_dir}! Exiting.")
             exit(1)
 
+    files_created = { "soil": False, "crop": False, "n2o": False }
     no_of_trts_to_receive = None
     no_of_trts_received = 0
     while no_of_trts_to_receive != no_of_trts_received:
@@ -66,27 +67,71 @@ def run_consumer(server=None, port=None):
                 continue
 
             no_of_trts_received += 1
-            id = custom_id.get("id", None)
+            trt_no = custom_id.get("trt_no", None)
+            soil_name = custom_id.get("soil_name", None)
 
             print(f"{os.path.basename(__file__)} received result {id}")
 
-            filepath = f"{path_to_out_dir}/out_{id}.csv"
-            with open(filepath, "wt", newline="", encoding="utf-8") as _:
-                writer = csv.writer(_, delimiter=",")
-                writer.writerow(["id", "year", "doy_stage_4", "doy_stage_6"])
-                #writer.writerow(["", "", "", ""])
+            soil_filepath = f"{path_to_out_dir}/out_soil.csv"
+            if files_created["soil"]:
+                soil_f = open(soil_filepath, "at", newline="", encoding="utf-8")
+            else:
+                soil_f = open(soil_filepath, "wt", newline="", encoding="utf-8")
+                soil_f.write("Treatment_number,replicate_number,DATE,soil_layer_top_depth,soil_layer_bot_depth,soil_water_by_layer,soil_nitrogen_by_layer,NO3_soil_by_layer,NH4_soil_by_layer\n")
+                soil_f.write("TRTNO,RP,DATE,SLDUB,SLDLB,SWLD,NSLD1,NOSLD,NHSLD\n")
+            soil_writer = csv.writer(soil_f, delimiter=",")
+            
+            n2o_filepath = f"{path_to_out_dir}/out_n2o.csv"
+            if files_created["n2o"]:
+                n2o_f = open(n2o_filepath, "at", newline="", encoding="utf-8")
+            else:
+                n2o_f = open(n2o_filepath, "wt", newline="", encoding="utf-8")
+                n2o_f.write("Treatment_number,replicate_number,DATE,N20 emission\n")
+                n2o_f.write("TRTNO,RP,DATE,N20EM\n")
+            n2o_writer = csv.writer(n2o_f, delimiter=",")
+            
+            crop_filepath = f"{path_to_out_dir}/out_crop.csv"
+            if files_created["n2o"]:
+                crop_f = open(crop_filepath, "at", newline="", encoding="utf-8")
+            else:
+                crop_f = open(crop_filepath, "wt", newline="", encoding="utf-8")
+                crop_f.write("Treatment_number,replicate_number,DATE,growth_stage_Zadoks,growth_stage_Haun,tiller_number,leaf_number_as_haun_stg,canopy_length,green_area_index,leaf_area_index,stem_area_index,specific_leaf_area,tops_dry_weight,leaf_dry_weight,dead_leaf_dry_weight,stem_dry_weight,crown_dry_weight,ear_grain_chaff_dry_wt,chaff_dry_weight,grain_dry_weigh,harvest_index,nitrogen_harvest_index,grain_unit_dry_weight,ear_number,grain_number\n")
+                crop_f.write("TRTNO,RP,DATE,GSTZD,GSTHD,TnoAD,LNUM,CLAD,GAID,LAID,SAID,SLAD,CWAD,LWAD,LDAD,SWAD,CRAD,EWAD,CHWAD,GWAD,HIAD,NHID,GWGD,EnoAD,GnoAD\n")
+            crop_writer = csv.writer(crop_f, delimiter=",")   
 
-                year_to_row = defaultdict(lambda: [id, None, None, None])
-                for data in msg.get("data", []):
-                    results = data.get("results", [])
-                    for vals in results:
-                        if "year_stage_4" in vals and "doy_stage_4" in vals:
-                            year_to_row[int(vals["year_stage_4"])][1] = vals["year_stage_4"]
-                            year_to_row[int(vals["year_stage_4"])][2] = vals["doy_stage_4"]
-                        if "year_stage_6" in vals and "doy_stage_6" in vals:
-                            year_to_row[int(vals["year_stage_6"])][3] = vals["doy_stage_6"]
-                for year in sorted(year_to_row.keys()):
-                    writer.writerow(year_to_row[year])
+            layers = {
+                "CH5531001": [5,10,20,30,40,50,60,70,90,110,130,150,170,190,210],
+                "LLWatelg01": [5,15,20,30,40,50,60,70,90,110,125]
+            }.get(soil_name, None)
+            if not layers:
+                continue
+
+            for data in msg.get("data", []):
+                results = data.get("results", [])
+                for vals in results:
+                    layer_top_depth = 0
+                    from_layer_index = 0
+                    for layer_bottom_depth_cm in layers:
+                        layer_index = min(max(0, int(layer_bottom_depth_cm / 10)), 20)
+                        layer_mois_vals = vals["Mois"][from_layer_index:layer_index]
+                        layer_avg_mois_val = sum(layer_mois_vals) / len(layer_mois_vals)
+                        layer_n_vals = vals["N"][from_layer_index:layer_index]
+                        layer_avg_n_val = sum(layer_n_vals) / len(layer_n_vals)
+                        layer_no3_vals = vals["NO3"][from_layer_index:layer_index]
+                        layer_avg_no3_val = sum(layer_no3_vals) / len(layer_no3_vals)
+                        layer_nh4_vals = vals["NH4"][from_layer_index:layer_index]
+                        layer_avg_nh4_val = sum(layer_nh4_vals) / len(layer_nh4_vals)
+                        soil_writer.writerow([
+                            trt_no, 1, vals["Date"], layer_top_depth, layer_bottom_depth_cm, 
+                            layer_avg_mois_val, layer_avg_n_val, layer_avg_no3_val, layer_avg_nh4_val
+                        ])
+
+                        layer_top_depth = layer_bottom_depth_cm
+                        from_layer_index = layer_index
+
+            soil_f.close()
+            crop_f.close()
+            n2o_f.close()
 
         except Exception as e:
             print(f"{os.path.basename(__file__)} Exception: {e}")
