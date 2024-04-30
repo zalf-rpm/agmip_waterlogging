@@ -1,15 +1,15 @@
-Treatment_number;suite_name;name_of_experiment;treatment_name;cultivar_name;institute_name;field_country;site_name;experiment_name_local;experiment_duration;field_latitude;field_longitude;field_elevation;weather_station_code;soil_profile_ID;;;;;;;;;;;
-TRTNO;SUITE_NAME;EXNAME;TRT_NAME;CUL_NAME;INSTITUTION;FL_LOC_1;SITE_NAME;LOCAL_NAME;EXP_DUR;FL_LAT;FL_LONG;FLELE;WST_ID;SOIL_ID;;;;;;;;;;;
-1;cal_france_soisson_1;arfrance;vraux_france;soissons;arvalis;France;Vraux;vraux_france;300;49,1;4,36;115;ARVA;CH5531001;;;;;;;;;;;
-2;cal_france_soisson_2;arfrance;vraux_france2;soissons;arvalis;France;Vraux;vraux_france;300;49,1;4,36;115;ARVA;CH5531001;;;;;;;;;;;
-3;cal_france_soisson_3;arfrance;mourm_france;soissons;arvalis;France;Mourmelon le Grand;mourm_france;300;49,1;4,36;115;ARVA;CH5531001;;;;;;;;;;;
-4;cal_france_soisson_4;arfrance;mourm_france2;soissons;arvalis;France;Mourmelon le Grand;mourm_france;300;49,1;4,36;115;ARVA;CH5531001;;;;;;;;;;;
-5;cal_leida_soisson_1;uleida_cal;soissonwc;soissons;uleida;Spain;uleida;ssonwc;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-6;uleidasoissonw4;uleida;soissonw4;soissons;uleida;Spain;uleida;ssonw4;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-7;uleidasoissonw8;uleida;soissonw8;soissons;uleida;Spain;uleida;ssonw8;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-8;uleidasoissonw12;uleida;soissonw12;soissons;uleida;Spain;uleida;ssonw12;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-9;uleidasoissonw16;uleida;soissonw16;soissons;uleida;Spain;uleida;ssonw16;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-10;uleidasoissonw20;uleida;soissonw20;soissons;uleida;Spain;uleida;ssonw20;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-11;uleidasoissonwl24;uleida;soissonw24;soissons;uleida;Spain;uleida;ssonw24;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-12;uleidasoissonwl8e;uleida;soissonw8e;soissons;uleida;Spain;uleida;ssonw8e;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
-13;uleidasoissonwl16e;uleida;soissonw16e;soissons;uleida;Spain;uleida;ssonw16e;300;41,6;0,62;77;LLEI;LLWatelg01;;;;;;;;;;;
+Treatment_number,suite_name,name_of_experiment,treatment_name,cultivar_name,institute_name,field_country,site_name,experiment_name_local,experiment_duration,field_latitude,field_longitude,field_elevation,weather_station_code,soil_profile_ID,weather_station_name,soil_profile_name
+TRTNO,SUITE_NAME,EXNAME,TRT_NAME,CUL_NAME,INSTITUTION,FL_LOC_1,SITE_NAME,LOCAL_NAME,EXP_DUR,FL_LAT,FL_LONG,FLELE,WST_ID,SOIL_ID,WST_NAME,SOIL_NAME
+1,cal_france_soisson_1,arfrance,vraux_france,soissons,arvalis,France,Vraux,vraux_france,300,49,1,4,36,115,ARVA,CH5531001
+2,cal_france_soisson_2,arfrance,vraux_france2,soissons,arvalis,France,Vraux,vraux_france,300,49,1,4,36,115,ARVA,CH5531001
+3,cal_france_soisson_3,arfrance,mourm_france,soissons,arvalis,France,Mourmelon le Grand,mourm_france,300,49,1,4,36,115,ARVA,CH5531001
+4,cal_france_soisson_4,arfrance,mourm_france2,soissons,arvalis,France,Mourmelon le Grand,mourm_france,300,49,1,4,36,115,ARVA,CH5531001
+5,cal_leida_soisson_1,uleida_cal,soissonwc,soissons,uleida,Spain,uleida,ssonwc,300,41,6,0,62,77,LLEI,LLWatelg01
+6,uleidasoissonw4,uleida,soissonw4,soissons,uleida,Spain,uleida,ssonw4,300,41,6,0,62,77,LLEI,LLWatelg01
+7,uleidasoissonw8,uleida,soissonw8,soissons,uleida,Spain,uleida,ssonw8,300,41,6,0,62,77,LLEI,LLWatelg01
+8,uleidasoissonw12,uleida,soissonw12,soissons,uleida,Spain,uleida,ssonw12,300,41,6,0,62,77,LLEI,LLWatelg01
+9,uleidasoissonw16,uleida,soissonw16,soissons,uleida,Spain,uleida,ssonw16,300,41,6,0,62,77,LLEI,LLWatelg01
+10,uleidasoissonw20,uleida,soissonw20,soissons,uleida,Spain,uleida,ssonw20,300,41,6,0,62,77,LLEI,LLWatelg01
+11,uleidasoissonwl24,uleida,soissonw24,soissons,uleida,Spain,uleida,ssonw24,300,41,6,0,62,77,LLEI,LLWatelg01
+12,uleidasoissonwl8e,uleida,soissonw8e,soissons,uleida,Spain,uleida,ssonw8e,300,41,6,0,62,77,LLEI,LLWatelg01
+13,uleidasoissonwl16e,uleida,soissonw16e,soissons,uleida,Spain,uleida,ssonw16e,300,41,6,0,62,77,LLEI,LLWatelg01

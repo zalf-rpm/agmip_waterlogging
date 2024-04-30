@@ -38,7 +38,8 @@ def run_producer(server=None, port=None):
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
-        "monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
+        #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -65,24 +66,26 @@ def run_producer(server=None, port=None):
     })
 
     soil_profiles = defaultdict(list)
-    soil_csv_path = f"{config['path_to_data_dir']}/Soil_layers.csv"
-    print(f"{os.path.basename(__file__)} CSV path:", soil_csv_path)
-    with open(soil_csv_path) as file:
+    with open(f"{config['path_to_data_dir']}/Soil_layers.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)
         next(reader)
         next(reader)
         prev_depth_m = 0
+        prev_soil_name = None
         for line in reader:
-            soil_id = line[0]
+            soil_name = line[0]
+            if soil_name != prev_soil_name:
+                prev_soil_name = soil_name
+                prev_depth_m = 0
             current_depth_m = float(line[1])/100.0
-            thickness = current_depth_m - prev_depth_m
+            thickness = round(current_depth_m - prev_depth_m, 1)
             prev_depth_m = current_depth_m
             layer = {
                 "Thickness": [thickness, "m"],
                 "PoreVolume": [float(line[2]), "m3/m3"],
-                "FieldCapacity": [(float(line[3]), "m3/m3"],
+                "FieldCapacity": [float(line[3]), "m3/m3"],
                 "PermanentWiltingPoint": [float(line[5]), "m3/m3"],
                 "Lambda": float(line[9]),
                 "SoilBulkDensity": [float(line[10])*1000.0, "kg/m3"],
@@ -92,13 +95,10 @@ def run_producer(server=None, port=None):
                 #"Sceleton": [float(line[15]), "m3/m3"],
                 "pH": float(line[18])
             }
-            soil_profiles[soil_id].append(layer)
-        
+            soil_profiles[soil_name].append(layer)
 
     trt_no_to_fertilizers = defaultdict(dict)
-    fert_csv_path = f"{config['path_to_data_dir']}/Fertilizers.csv"
-    print(f"{os.path.basename(__file__)} CSV path:", fert_csv_path)
-    with open(fert_csv_path) as file:
+    with open(f"{config['path_to_data_dir']}/Fertilizers.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)
@@ -113,25 +113,69 @@ def run_producer(server=None, port=None):
             trt_no_to_fertilizers[trt_no][fert_temp["date"]] = fert_temp
 
     trt_no_to_irrigation = defaultdict(dict)
-
+    with open(f"{config['path_to_data_dir']}/Irrigations.csv") as file:
+        dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
+        file.seek(0)
+        reader = csv.reader(file, dialect)
+        next(reader)
+        next(reader)
+        for line in reader:
+            irrig_temp = copy.deepcopy(irrig_template)
+            trt_no = int(line[0])
+            irrig_temp["date"] = line[2]
+            irrig_temp["amount"][0] = float(line[4])
+            trt_no_to_irrigation[trt_no][irrig_temp["date"]] = irrig_temp
 
     trt_no_to_plant = defaultdict(dict)
+    with open(f"{config['path_to_data_dir']}/Plantings.csv") as file:
+        dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
+        file.seek(0)
+        reader = csv.reader(file, dialect)
+        next(reader)
+        next(reader)
+        for line in reader:
+            copy.deepcopy(irrig_template)
+            trt_no = int(line[0])
+            trt_no_to_plant[trt_no]["PDATE"] = line[2]
+            trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])
+            trt_no_to_plant[trt_no]["PLRS"] = float(line[7])
+            trt_no_to_plant[trt_no]["PLDP"] = float(line[9])
 
-    trt_no_to_meta = {}
-
+    trt_no_to_meta = defaultdict(dict)
+    with open(f"{config['path_to_data_dir']}/Meta.csv") as file:
+        dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
+        file.seek(0)
+        reader = csv.reader(file, dialect)
+        next(reader)
+        header = next(reader)
+        for line in reader:
+            for i, h in enumerate(header):
+                trt_no_to_meta[int(line[0])][h] = line[i]
 
     no_of_trts = 0
     for trt_no, meta in trt_no_to_meta.items():
 
         env_template["csvViaHeaderOptions"] = sim_json["climate.csv-options"]
         env_template["pathToClimateCSV"] = \
-            f"{config['monica_path_to_climate_dir']}/Weather_daily_{meta['WST_ID']}.csv"
+            f"{config['monica_path_to_climate_dir']}/Weather_daily_{meta['WST_NAME']}.csv"
 
-        env_template["params"]["siteParameters"]["SoilProfileParameters"] = soil_profiles[meta['SOIL_ID']]
+        env_template["params"]["siteParameters"]["SoilProfileParameters"] = soil_profiles[meta['SOIL_NAME']]
 
         env_template["params"]["siteParameters"]["HeightNN"] = float(meta["FLELE"])
         env_template["params"]["siteParameters"]["Latitude"] = float(meta["FL_LAT"])
         #env_template["params"]["siteParameters"]["Slope"] = float(site["Slope"])
+
+        # complete crop rotation
+        dates = set()
+        dates.update(trt_no_to_fertilizers[trt_no].keys())
+        dates.update(trt_no_to_irrigation[trt_no].keys())
+
+        worksteps : list = env_template["cropRotation"][0]["worksteps"]
+        for date in sorted(dates):
+            if date in trt_no_to_fertilizers[trt_no]:
+                worksteps.insert(-2, trt_no_to_fertilizers[trt_no][date])
+            if date in trt_no_to_irrigation[trt_no]:
+                worksteps.insert(-2, trt_no_to_irrigation[trt_no][date])
 
         env_template["customId"] = {
             "nodata": False,
