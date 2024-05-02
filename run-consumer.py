@@ -118,7 +118,7 @@ def run_consumer(server=None, port=None):
 
             data: dict = msg["data"][1]
             vals: dict = data["results"][0]
-            row = [trt_no, -1, -1, -1, vals["LAID"], vals["CWAD"], vals["RWAD"]]
+            row = [trt_no, vals["GWAD"], -1, -1, vals["LAID"], vals["CWAD"], vals["RWAD"]]
             crop_writer.writerow(row)
 
         except Exception as e:

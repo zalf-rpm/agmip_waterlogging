@@ -45,7 +45,8 @@
                 ["LAI|LAID", "MAX"],
                 "Yield",
                 ["AbBiom|CWAD", "LAST"],
-                ["OrgBiom|RWAD", "ROOT", "LAST"]
+                ["OrgBiom|RWAD", "ROOT", "LAST"],
+                ["OrgBiom|GWAD", "FRUIT", "LAST"]
             ]
         ]
     }, 
