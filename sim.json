@@ -3,7 +3,7 @@
     "site.json": "",
     "crop.json": "",
     "climate.csv-options": {
-        "csv-separator": ";",
+        "csv-separator": ",",
         "no-of-climate-file-header-lines": 1,
         "header-to-acd-names": {
             "W_DATE": "iso-date",
