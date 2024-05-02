@@ -3,11 +3,11 @@ set PATH_TO_PYTHON=c:\Users\giri\AppData\Local\anaconda3\python.exe
 set MONICA_PARAMETERS=%cd%\data\monica-parameters
 echo "MONICA_PARAMETERS=%MONICA_PARAMETERS%"
 
-START "MONICA" %PATH_TO_MONICA_BIN_DIR%\monica-zmq-server -ci -i tcp://localhost:6677 -co -o tcp://localhost:7788
+START "MONICA" %PATH_TO_MONICA_BIN_DIR%\monica-zmq-server -bi -i tcp://localhost:6666 -bo -o tcp://localhost:7777
 
 echo "run producer"
 START "producer" %PATH_TO_PYTHON% run-producer.py
 
 echo "run consumer"
-%PATH_TO_PYTHON% run-consumer.py
+START "consumer" %PATH_TO_PYTHON% run-consumer.py
 

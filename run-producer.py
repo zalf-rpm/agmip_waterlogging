@@ -39,7 +39,8 @@ def run_producer(server=None, port=None):
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
         #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
-        "monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "C:/Users/giri/Documents/GitHub/agmip_waterlogging/data",
+        #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
