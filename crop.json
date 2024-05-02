@@ -37,7 +37,7 @@
                 { 
 					"type": "Sowing", 
 					"crop": ["ref", "crops", "WW"],
-					"date": "0000-01-01"
+					"date": "0000-10-01"
 				},
 				{ 
 					"type": "AutomaticHarvest", 

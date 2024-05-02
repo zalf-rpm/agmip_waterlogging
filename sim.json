@@ -27,17 +27,25 @@
             "csv-separator": ","
         }, 
         "events": [
-            "daily", [
+            {"start": "Sowing", "end": "Harvest"}, [
                 "Date",
                 "Crop",
                 "Stage",
                 "LAI",
                 "Yield",
-                "AbBiom",
-                ["Mois", [1, 20]],
-                ["N", [1, 20]],
-                ["NO3", [1, 20]],
-                ["NH4", [1, 20]]
+                "AbBiom|CWAD",
+                "Tra|TRANS",
+                "Act_ET|ETa",
+                "RunOff|Roff",
+                "PercolationRate|DPER",
+                "NLeach|NLEA",
+                ["Mois|SWC", [1, 20]]
+            ],
+            "crop", [
+                ["LAI|LAID", "MAX"],
+                "Yield",
+                ["AbBiom|CWAD", "LAST"],
+                ["OrgBiom|RWAD", "ROOT", "LAST"]
             ]
         ]
     }, 

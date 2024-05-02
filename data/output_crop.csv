@@ -1,2 +1,0 @@
-Treatment_number,replicate_number,DATE,growth_stage_Zadoks,growth_stage_Haun,tiller_number,leaf_number_as_haun_stg,canopy_length,green_area_index,leaf_area_index,stem_area_index,specific_leaf_area,tops_dry_weight,leaf_dry_weight,dead_leaf_dry_weight,stem_dry_weight,crown_dry_weight,ear_grain_chaff_dry_wt,chaff_dry_weight,grain_dry_weigh,harvest_index,nitrogen_harvest_index,grain_unit_dry_weight,ear_number,grain_number
-TRTNO,RP,DATE,GSTZD,GSTHD,TnoAD,LNUM,CLAD,GAID,LAID,SAID,SLAD,CWAD,LWAD,LDAD,SWAD,CRAD,EWAD,CHWAD,GWAD,HIAD,NHID,GWGD,EnoAD,GnoAD

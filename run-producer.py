@@ -38,8 +38,8 @@ def run_producer(server=None, port=None):
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
-        "monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
-        #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
+        #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -180,6 +180,7 @@ def run_producer(server=None, port=None):
         env_template["customId"] = {
             "nodata": False,
             "trt_no": trt_no,
+            "soil_name": meta['SOIL_NAME']
         }
         socket.send_json(env_template)
         no_of_trts += 1

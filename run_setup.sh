@@ -15,7 +15,7 @@ out_proxy_pid=$!
 echo "out_proxy_pid -> $out_proxy_pid"
 
 monica_pids=()
-for _ in {1..6}
+for _ in {1..2}
 do
   $PATH_TO_MONICA_BIN_DIR/monica-zmq-server -ci -i tcp://localhost:6677 -co -o tcp://localhost:7788 &
   monica_pids+=($!)
