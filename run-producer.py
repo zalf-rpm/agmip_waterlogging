@@ -139,7 +139,7 @@ def run_producer(server=None, port=None):
             trt_no = int(line[0])
             trt_no_to_plant[trt_no]["PDATE"] = line[2]
             trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])
-            trt_no_to_plant[trt_no]["PLPOE"] = line[6]
+            # trt_no_to_plant[trt_no]["PLPOE"] = line[6]
             trt_no_to_plant[trt_no]["PLRS"] = float(line[7])
             trt_no_to_plant[trt_no]["PLDP"] = float(line[9])
             
@@ -179,7 +179,7 @@ def run_producer(server=None, port=None):
         worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
 
         worksteps : list = env_template["cropRotation"][0]["worksteps"]
-        worksteps[0]["PlantingDensity"] = trt_no_to_plant[trt_no]["PLPOE"]
+        worksteps[0]["PlantingDensity"] = trt_no_to_plant[trt_no]["PLPOP"]
         # Determine and set the PlantingDensity based on the treatment number
         worksteps[0]["PlantingDensity"] = 320 if trt_no <= 4 else 340
 
