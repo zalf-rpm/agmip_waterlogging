@@ -15,6 +15,7 @@
 # Landscape Systems Analysis at the ZALF.
 # Copyright (C: Leibniz Centre for Agricultural Landscape Research (ZALF)
 
+import capnp
 from collections import defaultdict
 import csv
 import copy
@@ -26,13 +27,17 @@ import zmq
 import monica_io3
 import shared
 
+fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
-def run_producer(server=None, port=None):
+
+def run_producer(server=None, port=None, calibration=False):
 
     context = zmq.Context()
     socket = context.socket(zmq.PUSH)  # pylint: disable=no-member
 
     config = {
+        "mode": "mbm-local-remote",
+        "calibration": calibration,
         "server-port": port if port else "6666",
         "server": server if server else "localhost",
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
@@ -42,6 +47,7 @@ def run_producer(server=None, port=None):
         "monica_path_to_climate_dir": "C:/Users/giri/Documents/GitHub/agmip_waterlogging/data",
         #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
+        "path_to_out": "out/",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
 
@@ -49,6 +55,9 @@ def run_producer(server=None, port=None):
 
     with open(config["sim.json"]) as _:
         sim_json = json.load(_)
+
+    if calibration:
+        sim_json["events"] = sim_json["calibration_events"]
 
     with open(config["site.json"]) as _:
         site_json = json.load(_)
@@ -153,51 +162,100 @@ def run_producer(server=None, port=None):
             for i, h in enumerate(header):
                 trt_no_to_meta[int(line[0])][h] = line[i]
 
-    no_of_trts = 0
-    for trt_no, meta in trt_no_to_meta.items():
+    # if calibration connect to reader for new parameters
+    conman = reader = None
+    if calibration:
+        conman = common.ConnectionManager()
+        reader = conman.try_connect(config["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
 
-        env_template["csvViaHeaderOptions"] = sim_json["climate.csv-options"]
-        env_template["pathToClimateCSV"] = \
-            f"{config['monica_path_to_climate_dir']}/Weather_daily_{meta['WST_NAME']}.csv"
+    while True:
+        if calibration:
+            msg = reader.read().wait()
+            # check for end of data from in port
+            if msg.which() == "done":
+                break
 
-        env_template["params"]["siteParameters"]["SoilProfileParameters"] = soil_profiles[meta['SOIL_NAME']]
+            # with open(config["path_to_out"] + "/spot_setup.out", "a") as _:
+            #    _.write(f"{datetime.now()} connected\n")
 
-        env_template["params"]["siteParameters"]["HeightNN"] = float(meta["FLELE"])
-        env_template["params"]["siteParameters"]["Latitude"] = float(meta["FL_LAT"])
-        #env_template["params"]["siteParameters"]["Slope"] = float(site["Slope"])
+            env_template = None
+            try:
+                in_ip = msg.value.as_struct(fbp_capnp.IP)
+                s: str = in_ip.content.as_text()
+                params = json.loads(s)  # keys: MaxAssimilationRate, AssimilateReallocation, RootPenetrationRate
 
-        # complete crop rotation
-        dates = set()
-        dates.update(trt_no_to_fertilizers[trt_no].keys())
-        dates.update(trt_no_to_irrigation[trt_no].keys())
+                sowing_ws: dict = env_template["cropRotation"][0]["worksteps"][0]
+                ps = sowing_ws["crop"]["cropParams"]
+                for pname, pval in params.items():
+                    pname_arr = pname.split("_")
+                    i = None
+                    if len(pname_arr) == 2:
+                        pname = pname_arr[0]
+                        i = int(pname_arr[1])
+                    if pname in ps["species"]:
+                        if i:
+                            if len(ps["species"][pname]) < i:
+                                ps["species"][pname][i] = pval
+                        else:
+                            ps["species"][pname] = pval
+                    elif pname in ps["cultivar"]:
+                        if i:
+                            if len(ps["cultivar"][pname]) > i:
+                                ps["cultivar"][pname][i] = pval
+                        else:
+                            ps["cultivar"][pname] = pval
+            except Exception as e:
+                print(f"{os.path.basename(__file__)} exception: {e}")
+                raise e
 
-        worksteps : list = env_template["cropRotation"][0]["worksteps"]
-        worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
-        ld = worksteps[-1]["latest-date"]
-        worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
-        for date in sorted(dates):
-            if date in trt_no_to_fertilizers[trt_no]:
-                worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
-            if date in trt_no_to_irrigation[trt_no]:
-                worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+        no_of_trts = 0
+        for trt_no, meta in trt_no_to_meta.items():
 
+            env_template["csvViaHeaderOptions"] = sim_json["climate.csv-options"]
+            env_template["pathToClimateCSV"] = \
+                f"{config['monica_path_to_climate_dir']}/Weather_daily_{meta['WST_NAME']}.csv"
+
+            env_template["params"]["siteParameters"]["SoilProfileParameters"] = soil_profiles[meta['SOIL_NAME']]
+
+            env_template["params"]["siteParameters"]["HeightNN"] = float(meta["FLELE"])
+            env_template["params"]["siteParameters"]["Latitude"] = float(meta["FL_LAT"])
+            #env_template["params"]["siteParameters"]["Slope"] = float(site["Slope"])
+
+            # complete crop rotation
+            dates = set()
+            dates.update(trt_no_to_fertilizers[trt_no].keys())
+            dates.update(trt_no_to_irrigation[trt_no].keys())
+
+            worksteps : list = env_template["cropRotation"][0]["worksteps"]
+            worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
+            ld = worksteps[-1]["latest-date"]
+            worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+            for date in sorted(dates):
+                if date in trt_no_to_fertilizers[trt_no]:
+                    worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
+                if date in trt_no_to_irrigation[trt_no]:
+                    worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+
+            env_template["customId"] = {
+                "nodata": False,
+                "trt_no": trt_no,
+                "soil_name": meta['SOIL_NAME']
+            }
+            socket.send_json(env_template)
+            no_of_trts += 1
+            print(f"{os.path.basename(__file__)} sent job {no_of_trts}")
+
+        # send done message
         env_template["customId"] = {
-            "nodata": False,
-            "trt_no": trt_no,
+            "no_of_trts": no_of_trts,
+            "nodata": True,
             "soil_name": meta['SOIL_NAME']
         }
         socket.send_json(env_template)
-        no_of_trts += 1
-        print(f"{os.path.basename(__file__)} sent job {no_of_trts}")
+        print(f"{os.path.basename(__file__)} done")
 
-    # send done message
-    env_template["customId"] = {
-        "no_of_trts": no_of_trts,
-        "nodata": True,
-        "soil_name": meta['SOIL_NAME']
-    }
-    socket.send_json(env_template)
-    print(f"{os.path.basename(__file__)} done")
+        if not calibration:
+            break
 
 
 if __name__ == "__main__":

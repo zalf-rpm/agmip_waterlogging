@@ -48,6 +48,15 @@
                 ["OrgBiom|RWAD", "ROOT", "LAST"],
                 ["OrgBiom|GWAD", "FRUIT", "LAST"]
             ]
+        ],
+        "calibration_events": [
+            "crop", [
+                ["LAI|LAID", "MAX"],
+                "Yield",
+                ["AbBiom|CWAD", "LAST"],
+                ["OrgBiom|RWAD", "ROOT", "LAST"],
+                ["OrgBiom|GWAD", "FRUIT", "LAST"]
+            ]
         ]
     }, 
     "include-file-base-path": "data/",
