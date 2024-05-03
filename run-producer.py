@@ -172,6 +172,9 @@ def run_producer(server=None, port=None):
         dates.update(trt_no_to_irrigation[trt_no].keys())
 
         worksteps : list = env_template["cropRotation"][0]["worksteps"]
+        worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
+        ld = worksteps[-1]["latest-date"]
+        worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
         for date in sorted(dates):
             if date in trt_no_to_fertilizers[trt_no]:
                 worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
