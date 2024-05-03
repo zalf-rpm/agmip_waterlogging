@@ -139,8 +139,10 @@ def run_producer(server=None, port=None):
             trt_no = int(line[0])
             trt_no_to_plant[trt_no]["PDATE"] = line[2]
             trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])
+            trt_no_to_plant[trt_no]["PLPOE"] = line[6]
             trt_no_to_plant[trt_no]["PLRS"] = float(line[7])
             trt_no_to_plant[trt_no]["PLDP"] = float(line[9])
+            
 
     trt_no_to_meta = defaultdict(dict)
     with open(f"{config['path_to_data_dir']}/Meta.csv") as file:
@@ -175,11 +177,18 @@ def run_producer(server=None, port=None):
         worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
         ld = worksteps[-1]["latest-date"]
         worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+
+        worksteps : list = env_template["cropRotation"][0]["worksteps"]
+        worksteps[0]["PlantingDensity"] = trt_no_to_plant[trt_no]["PLPOE"]
+        # Determine and set the PlantingDensity based on the treatment number
+        worksteps[0]["PlantingDensity"] = 320 if trt_no <= 4 else 340
+
         for date in sorted(dates):
             if date in trt_no_to_fertilizers[trt_no]:
                 worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
             if date in trt_no_to_irrigation[trt_no]:
                 worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+
 
         env_template["customId"] = {
             "nodata": False,
