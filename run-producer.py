@@ -26,6 +26,7 @@ import zmq
 
 import monica_io3
 import shared
+import common
 
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
@@ -48,10 +49,13 @@ def run_producer(server=None, port=None, calibration=False):
         #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
+        "treatments": "[]",
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
 
     socket.connect("tcp://" + config["server"] + ":" + config["server-port"])
+
+    treatments = json.loads(config["treatments"])
 
     with open(config["sim.json"]) as _:
         sim_json = json.load(_)
@@ -210,6 +214,8 @@ def run_producer(server=None, port=None, calibration=False):
 
         no_of_trts = 0
         for trt_no, meta in trt_no_to_meta.items():
+            if len(treatments) > 0 and trt_no not in treatments:
+                continue
 
             env_template["csvViaHeaderOptions"] = sim_json["climate.csv-options"]
             env_template["pathToClimateCSV"] = \

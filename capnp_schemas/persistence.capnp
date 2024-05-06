@@ -104,7 +104,7 @@ interface Persistent {
   }
 
   interface ReleaseSturdyRef {
-    release @0 () -> (success :Bool) $Go.name("releaseSR"); 
+    release @0 () -> (success :Bool);
   }
 }
 
@@ -159,6 +159,6 @@ interface HostPortResolver extends(Identifiable, Restorer) {
     # If a heartbeat ist missed, the vat-id/alias will be unregistered.
   }
 
-  resolve @0 (id :Text) -> (host :Text, port :UInt16) $Go.name("ResolveIdent") ;
+  resolve @0 (id :Text) -> (host :Text, port :UInt16);
   # resolve an id (either base64 encoded VatId or plain text alias) to a host and port
 }

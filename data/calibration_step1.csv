@@ -1,0 +1,9 @@
+Parameter,Notes
+AssimilatePartitioningCoeff,Calibrate the following cultivar paramters based on measuremetns for treatment 1-5.
+BaseDaylength,
+DaylengthRequirement,
+OrganSenescenceRate,
+SpecificLeafArea,
+StageKcFactor,
+StageTemperatureSum,
+VernalisationRequirement,

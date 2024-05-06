@@ -529,7 +529,7 @@ class ConnectionManager:
         self._connections = {}
         self._restorer = restorer if restorer else Restorer()
 
-    def connect(self, sturdy_ref, cast_as=None):
+    async def connect(self, sturdy_ref, cast_as=None):
         if not sturdy_ref:
             return None
 
@@ -575,12 +575,13 @@ class ConnectionManager:
             if host_port in self._connections:
                 bootstrap_cap = self._connections[host_port]
             else:
-                bootstrap_cap = capnp.TwoPartyClient(host_port).bootstrap()
+                connection = await capnp.AsyncIoStream.create_connection(host=host, port=port)
+                bootstrap_cap = capnp.TwoPartyClient(connection).bootstrap()
                 self._connections[host_port] = bootstrap_cap
 
             if sr_token:
                 restorer = bootstrap_cap.cast_as(persistence_capnp.Restorer)
-                dyn_obj_reader = restorer.restore(localRef={"text": sr_token}).wait().cap
+                dyn_obj_reader = (await restorer.restore(localRef={"text": sr_token})).cap
                 #res_req = restorer.restore_request()
                 #res_req.localRef = {"text": sr_token}
                 #dyn_obj_reader = res_req.send().wait().cap
@@ -595,10 +596,10 @@ class ConnectionManager:
 
         return None
 
-    def try_connect(self, sturdy_ref, cast_as=None, retry_count=10, retry_secs=5, print_retry_msgs=True):
+    async def try_connect(self, sturdy_ref, cast_as=None, retry_count=10, retry_secs=5, print_retry_msgs=True):
         while True:
             try:
-                return self.connect(sturdy_ref, cast_as=cast_as)
+                return await self.connect(sturdy_ref, cast_as=cast_as)
             except Exception as e:
                 print(e)
                 if retry_count == 0:

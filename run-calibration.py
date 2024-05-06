@@ -1,8 +1,9 @@
-
+import asyncio
 from datetime import datetime
 import capnp
 from collections import defaultdict
 import csv
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -13,6 +14,8 @@ import time
 import uuid
 
 import calibration_spotpy_setup_MONICA
+import common
+import monica_run_lib
 
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
@@ -37,10 +40,10 @@ def get_reader_writer_srs_from_channel(path_to_channel_binary, chan_name=None):
     return {"chan": chan, "reader_sr": reader_sr, "writer_sr": writer_sr}
 
 
-local_run = False
+local_run = True
 
 
-def run_calibration(server=None, prod_port=None, cons_port=None):
+async def run_calibration(server=None, prod_port=None, cons_port=None):
     config = {
         "mode": "mbm-local-remote",
         "prod-port": prod_port if prod_port else "6666",  # local: 6667, remote 6666
@@ -56,7 +59,7 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
         "repetitions": "5",
-        "test_mode": "false",
+        "treatments": [1,2,3,4,5],
     }
 
     common.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -84,12 +87,14 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
     procs.append(sp.Popen([
         config["path_to_python"],
         "run-producer.py",
+        "calibration=true",
         "mode=mbm-local-remote" if local_run else "mode=hpc-local-remote",
         f"server={config['server']}",
         f"port={config['prod-port']}",
         f"setups-file={config['setups-file']}",
         f"reader_sr={prod_chan_data['reader_sr']}",
         f"path_to_out={config['path_to_out']}",
+        f"treatments={json.dumps(config['treatments'])}",
     ]))
 
     #with open(path_to_out_folder + "/spot_setup.out", "a") as _:
@@ -105,34 +110,25 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
         f"path_to_out={config['path_to_out']}",
     ]))
 
-    crop_to_observations = defaultdict(list)
-    nuts3_region_id_to_name = {}
-    with (open("Winter_Wheat_Calibration.csv") as file):
-        dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
-        file.seek(0)
-        reader = csv.reader(file, dialect)
-        next(reader, None)  # skip the header
-        for row in reader:
-            id = int(row[26])
-            name = row[1].strip()
-            nuts3_region_id_to_name[id] = name
-            for i in range(2, 26):
-                yield_t = float(row[i])
-                crop_to_observations["WW"].append({
-                    "id": id,
-                    "year": 1999 + i - 2,
-                    "value": np.nan if yield_t < 0.0 else yield_t * 1000.0  # t/ha -> kg/ha nan is -9999
-                })
-
-    #with open(path_to_out_folder + "/spot_setup.out", "a") as _:
-    #    _.write(f"{datetime.now()} Consumer received and finished\n")
-    # order obs list by id to avoid mismatch between observation/evaluation lists
-    for crop, obs in crop_to_observations.items():
-        obs.sort(key=lambda r: [r["id"], r["year"]])
+    measurements = monica_run_lib.read_csv("data/measurements.csv", key="TRTNO",
+                                           skip_lines=1, empty_value=np.nan)
+    observations_order = ["Z31D", "ADAT", "MDAT", "GWAM", "CWAA", "CWAM", "CNAM", "GNAM", "HIAM", "GWGM"]
+    observations = []
+    for trt_no in sorted(measurements.keys()):
+        trt = measurements[trt_no]
+        for output_name in observations_order:
+            v = trt[output_name]
+            if v is np.nan:
+                observations.append(np.nan)
+                continue
+            if output_name in ["Z31D", "ADAT", "MDAT"]:
+                observations.append(int(datetime.fromisoformat(v).timetuple().tm_yday))
+            else:
+                observations.append(float(v))
 
     # read parameters which are to be calibrated
     params = []
-    with open("calibratethese.csv") as params_csv:
+    with open("data/calibratethese.csv") as params_csv:
         dialect = csv.Sniffer().sniff(params_csv.read(), delimiters=';,\t')
         params_csv.seek(0)
         reader = csv.reader(params_csv, dialect)
@@ -140,7 +136,7 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
         for row in reader:
             p = {"name": row[0]}
             if len(row[1]) > 0:
-                p["array"] = int(row[1])
+                p["array"] = row[1].split("|")
             for n, i in [("low", 2), ("high", 3), ("step", 4), ("optguess", 5), ("minbound", 6), ("maxbound", 7)]:
                 if len(row[i]) > 0:
                     p[n] = float(row[i])
@@ -149,21 +145,21 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
             params.append(p)
 
     con_man = common.ConnectionManager()
-
-    cons_reader = con_man.try_connect(cons_chan_data["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
-    prod_writer = con_man.try_connect(prod_chan_data["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)
+    cons_reader = await con_man.try_connect(cons_chan_data["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
+    prod_writer = await con_man.try_connect(prod_chan_data["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)
 
     # configure MONICA setup for spotpy
-    observations = crop_to_observations["WW"]
+    #observations = crop_to_observations["WW"]
 
     spot_setup = None
-    spot_setup = calibration_spotpy_setup_MONICA.spot_setup(params, observations, prod_writer, cons_reader,
+    spot_setup = calibration_spotpy_setup_MONICA.spot_setup(params, observations, observations_order,
+                                                            prod_writer, cons_reader,
                                                             path_to_out_folder)
 
     rep = int(config["repetitions"]) #initial number was 10
     results = []
     #Set up the sampler with the model above
-    sampler = spotpy.algorithms.sceua(spot_setup, dbname=f"{path_to_out_folder}/{nuts3_region_folder_name}_SCEUA_monica_results", dbformat="csv")
+    sampler = spotpy.algorithms.sceua(spot_setup, dbname=f"{path_to_out_folder}/SCEUA_monica_results", dbformat="csv")
     # sampler = spotpy.algorithms.dream(spot_setup, dbname=f"{path_to_out_folder}/{nuts3_region_folder_name}_DREAM_monica_results", dbformat="csv")
     #Run the sampler to produce the paranmeter distribution
     #and identify optimal parameters based on objective function
@@ -180,7 +176,6 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
 
     #with open(path_to_out_folder + "/spot_setup.out", "a") as _:
     #    _.write(f"{datetime.now()} sampler ends run-cal\n")
-
 
     def print_status_final(self, stream):
         print("\n*** Final SPOTPY summary ***")
@@ -220,7 +215,6 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
 
         print("******************************\n", file=stream)
 
-
     path_to_best_out_file = f"{path_to_out_folder}/best.out"
     with open(path_to_best_out_file, "a") as _:
         print_status_final(sampler.status, _)
@@ -244,8 +238,6 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
     fig.savefig(f"{path_to_out_folder}/SCEUA_objectivefunctiontrace_MONICA.png", dpi=150)
     plt.close(fig)
 
-    del results
-
     # kill the two channels and the producer and consumer
     for proc in procs:
         proc.terminate()
@@ -253,6 +245,6 @@ def run_calibration(server=None, prod_port=None, cons_port=None):
     print(f"{os.path.basename(__file__)} finished")
 
 if __name__ == "__main__":
-    run_calibration()
+    asyncio.run(capnp.run(run_calibration()))
 
 

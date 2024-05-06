@@ -23,6 +23,8 @@ import os
 import sys
 import zmq
 
+import common
+
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
 PATHS = {
@@ -63,7 +65,7 @@ def run_consumer(server=None, port=None):
     socket.connect("tcp://" + config["server"] + ":" + config["port"])
     socket.RCVTIMEO = config["timeout"]
 
-    nuts3_region_id_to_year_to_yields = defaultdict(lambda: defaultdict(list))
+    trt_no_to_output_name_to_result = defaultdict(dict)
 
     conman = common.ConnectionManager()
     writer = conman.try_connect(config["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)  #None
@@ -85,30 +87,23 @@ def run_consumer(server=None, port=None):
                 #    _.write(f"received result customId: {custom_id}\n")
                 #print("received result customId:", custom_id)
 
-                nuts3_region_id = custom_id["nuts3_region_id"]
+                trt_no = custom_id["trt_no"]
 
                 for data in msg.get("data", []):
                     results = data.get("results", [])
                     for vals in results:
-                        if "Year" in vals:
-                            nuts3_region_id_to_year_to_yields[nuts3_region_id][int(vals["Year"])].append(vals["Yield"])
+                        for output_name, val in vals.items():
+                            trt_no_to_output_name_to_result[trt_no][output_name] = val
 
             if no_of_trts_expected == no_of_trts_received and writer:
                 with open(path_to_out_file, "a") as _:
                     _.write(f"{datetime.now()} last expected env received\n")
-                #print("last expected env received")
-                nuts3_region_id_and_year_to_avg_yield = {}
-                for nuts3_region_id, rest in nuts3_region_id_to_year_to_yields.items():
-                    for year, yields in rest.items():
-                        no_of_yields = len(yields)
-                        if no_of_yields > 0:
-                            nuts3_region_id_and_year_to_avg_yield[f"{nuts3_region_id}|{year}"] = sum(yields) / no_of_yields
 
-                out_ip = fbp_capnp.IP.new_message(content=json.dumps(nuts3_region_id_and_year_to_avg_yield))
+                out_ip = fbp_capnp.IP.new_message(content=json.dumps(trt_no_to_output_name_to_result))
                 writer.write(value=out_ip).wait()
 
                 # reset and wait for next round
-                nuts3_region_id_to_year_to_yields.clear()
+                trt_no_to_output_name_to_result.clear()
                 no_of_trts_expected = None
                 no_of_trts_received = 0
 

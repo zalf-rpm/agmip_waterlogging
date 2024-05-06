@@ -51,12 +51,12 @@ interface Channel(V) extends(Identifiable, Persistent) {
     # sturdy references to the writers
   }
 
-  interface Reader $Cxx.name("ChanReader") {
+  interface Reader {
     read  @0 () -> Msg;
     close @1 ();
   }
 
-  interface Writer $Cxx.name("ChanWriter") {
+  interface Writer {
     write @0 Msg;
     close @1 ();
   }

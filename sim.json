@@ -50,12 +50,19 @@
             ]
         ],
         "calibration_events": [
-            "crop", [
-                ["LAI|LAID", "MAX"],
-                "Yield",
-                ["AbBiom|CWAD", "LAST"],
-                ["OrgBiom|RWAD", "ROOT", "LAST"],
-                ["OrgBiom|GWAD", "FRUIT", "LAST"]
+            "cereal-stem-elongation", [
+                "Date|Z31D"
+            ],
+            "anthesis", [
+                "Date|ADAT",
+                "AbBiom|CWAA"
+            ],
+            "maturity", [
+                "Date|MDAT",
+                ["OrgBiom|GWAM", "FRUIT"],
+                "AbBiom|CWAM",
+                "TotBiomN|CNAM",
+                "YieldNc|GNAM"
             ]
         ]
     }, 
