@@ -23,8 +23,8 @@ from pyproj import Transformer
 from datetime import date, timedelta
 
 
-def read_csv(path_to_setups_csv, key="run-id"):
-    "read sim setup from csv file"
+def read_csv(path_to_setups_csv, key="id", skip_lines=0, empty_value=""):
+    """read sim setup from csv file"""
     with open(path_to_setups_csv) as _:
         key_to_data = {}
         # determine seperator char
@@ -32,6 +32,8 @@ def read_csv(path_to_setups_csv, key="run-id"):
         _.seek(0)
         # read csv with seperator char
         reader = csv.reader(_, dialect)
+        for _ in range(skip_lines):
+            next(reader)
         header_cols = next(reader)
         for row in reader:
             data = {}
@@ -41,6 +43,8 @@ def read_csv(path_to_setups_csv, key="run-id"):
                     value = value.lower() == "true"
                 if header_col == key:
                     value = int(value)
+                if value == "":
+                    value = empty_value
                 data[header_col] = value
             key_to_data[int(data[key])] = data
         return key_to_data

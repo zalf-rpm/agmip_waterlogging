@@ -42,7 +42,7 @@
 				},
 				{ 
 					"type": "AutomaticHarvest", 
-					"latest-date": "0001-09-05",
+					"latest-date": "0001-12-31",
 					"min-%-asw": 0,
 					"max-%-asw": 40,
 					"max-3d-precip-sum": 4,

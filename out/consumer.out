@@ -1,0 +1,13 @@
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://VG-EGLs0yypKg40NWl4u0bwbLTj4DsjiaeWSki0ToP4@10.10.25.161:36789/f555c8c4-6999-4585-8c62-205033bbf83b', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://FLkhHnNL4HwQDKarHCPAyftuuTfPGhXnaNvyeIqzViE@10.10.25.161:46433/c0906963-ca59-4f9d-b832-b3e4e0b30db4', 'path_to_out': 'out/', 'timeout': 600000}
+no response from the server (with 600000 ms timeout)
+no response from the server (with 600000 ms timeout)
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://QP0q_gXngmwE6ncPRHVeIbTNZfjDBzlt_jlTgjz0Tn8@10.10.25.161:40487/2b4eaf3e-db73-4cf7-8502-e084699fc087', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://04ltCEKXlGN4G4PtNmyQ3FNd1sTctBo-WADQ3ufbnDQ@10.10.25.161:45705/04019975-c8ec-4bbc-8f64-26ec7c1a5e4a', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://fCYPEEXCRfWY6H3oPv334fMXQCImEOJXRi1dfCqahdM@10.10.25.161:35883/a23b1f53-e08c-4790-87c6-dba8d737c739', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://HkyjkgPjVMsf3Vk4eBbeGXr5QLw7xtwsGloRI6OEhN4@10.10.25.161:37917/0807ab99-bba8-490c-8be4-b312dee0bc85', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://6kBmIdvLahkCozXMc7fBiat3AipksFB3nxV7Td-lXfY@10.10.25.161:40271/90dcdce0-bb15-484c-8490-7a231cb610f8', 'path_to_out': 'out/', 'timeout': 600000}
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://qv1XKEwm8qoi3kgmVypNT5KrpPDNJAxdm0lrHuvq49Q@10.10.25.161:36077/60eca5aa-f527-41d5-af25-d7b44844daee', 'path_to_out': 'out/', 'timeout': 600000}
+no response from the server (with 600000 ms timeout)
+config: {'mode': 'remoteConsumer-remoteMonica', 'port': '7777', 'server': 'login01.cluster.zalf.de', 'writer_sr': 'capnp://T-6nSo6kLXzHqoOxPDysNwLNXXcGS4JdDBmU--RIwfA@10.10.25.161:40997/01fd5df3-cea9-4b76-9c6a-966432ce87ac', 'path_to_out': 'out/', 'timeout': 600000}
+no response from the server (with 600000 ms timeout)
