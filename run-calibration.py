@@ -48,7 +48,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "mode": "mbm-local-remote",
         "prod-port": prod_port if prod_port else "6666",  # local: 6667, remote 6666
         "cons-port": cons_port if cons_port else "7777",  # local: 6667, remote 6666
-        "server": server if server else "login01.cluster.zalf.de",
+        "server": server if server else "localhost",  # "login01.cluster.zalf.de",
         "sim.json": "sim.json",
         "crop.json": "crop.json",
         "site.json": "site.json",
@@ -147,9 +147,10 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
     con_man = common.ConnectionManager()
     cons_reader = await con_man.try_connect(cons_chan_data["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
     prod_writer = await con_man.try_connect(prod_chan_data["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)
+    loop = asyncio.get_running_loop()
 
     # configure MONICA setup for spotpy
-    #observations = crop_to_observations["WW"]
+    #observations = crop_to_observations["WW"] 136978572957504
 
     spot_setup = None
     spot_setup = calibration_spotpy_setup_MONICA.spot_setup(params, observations, observations_order,
@@ -245,6 +246,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
     print(f"{os.path.basename(__file__)} finished")
 
 if __name__ == "__main__":
+    #run_calibration()
     asyncio.run(capnp.run(run_calibration()))
 
 

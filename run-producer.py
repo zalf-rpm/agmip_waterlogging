@@ -15,6 +15,7 @@
 # Landscape Systems Analysis at the ZALF.
 # Copyright (C: Leibniz Centre for Agricultural Landscape Research (ZALF)
 
+import asyncio
 import capnp
 from collections import defaultdict
 import csv
@@ -31,7 +32,7 @@ import common
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
 
-def run_producer(server=None, port=None, calibration=False):
+async def run_producer(server=None, port=None, calibration=False):
 
     context = zmq.Context()
     socket = context.socket(zmq.PUSH)  # pylint: disable=no-member
@@ -50,6 +51,7 @@ def run_producer(server=None, port=None, calibration=False):
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
         "treatments": "[]",
+        "reader_sr": None,
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
 
@@ -60,8 +62,9 @@ def run_producer(server=None, port=None, calibration=False):
     with open(config["sim.json"]) as _:
         sim_json = json.load(_)
 
+    calibration = config["calibration"]
     if calibration:
-        sim_json["events"] = sim_json["calibration_events"]
+        sim_json["output"]["events"] = sim_json["output"]["calibration_events"]
 
     with open(config["site.json"]) as _:
         site_json = json.load(_)
@@ -172,11 +175,11 @@ def run_producer(server=None, port=None, calibration=False):
     conman = reader = None
     if calibration:
         conman = common.ConnectionManager()
-        reader = conman.try_connect(config["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
+        reader = await conman.try_connect(config["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
 
     while True:
         if calibration:
-            msg = reader.read().wait()
+            msg = await reader.read()
             # check for end of data from in port
             if msg.which() == "done":
                 break
@@ -267,4 +270,4 @@ def run_producer(server=None, port=None, calibration=False):
 
 
 if __name__ == "__main__":
-    run_producer()
+    asyncio.run(capnp.run(run_producer()))

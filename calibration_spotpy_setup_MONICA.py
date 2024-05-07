@@ -63,14 +63,20 @@ class spot_setup(object):
         msg_content = dict(zip(vector.name, vector))
         out_ip = fbp_capnp.IP.new_message(content=json.dumps(msg_content))
         loop = asyncio.get_running_loop()
-        f = asyncio.run_coroutine_threadsafe(self.prod_writer.write(value=out_ip), loop)
+        async def write():
+            return self.prod_writer.write(value=out_ip)
+        asyncio.run_coroutine_threadsafe(write(), loop)
+        #await self.prod_writer.write(value=out_ip)
         with open(self.path_to_out_file, "a") as _:
             _.write(f"{datetime.now()} sent params to monica setup: {vector}\n")
         print("sent params to monica setup:", vector, flush=True)
 
-        r = f.result()
-        f2 = asyncio.run_coroutine_threadsafe(self.cons_reader.read(), loop)
-        msg = f2.result()#asyncio.wait(self.cons_reader.read())
+        async def read():
+            return self.cons_reader.read()
+        msg_f = asyncio.run_coroutine_threadsafe(read(), loop)
+        #f2 = asyncio.run_coroutine_threadsafe(self.cons_reader.read(), loop)
+        msg = msg_f.result()
+        #await self.cons_reader.read().wait()
         # check for end of data from in port
         if msg.which() == "done":
             return

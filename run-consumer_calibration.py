@@ -15,6 +15,7 @@
 # Landscape Systems Analysis at the ZALF.
 # Copyright (C: Leibniz Centre for Agricultural Landscape Research (ZALF)
 
+import asyncio
 import capnp
 from collections import defaultdict
 from datetime import datetime
@@ -36,13 +37,13 @@ PATHS = {
 }
 
 
-def run_consumer(server=None, port=None):
+async def run_consumer(server=None, port=None):
     """collect data from workers"""
 
     config = {
         "mode": "remoteConsumer-remoteMonica",
         "port": port if port else "7777",  # local 7778,  remote 7777
-        "server": server if server else "login01.cluster.zalf.de",
+        "server": server if server else "localhost",  # "login01.cluster.zalf.de",
         "writer_sr": None,
         "path_to_out": "out/",
         "timeout": 600000  # 10min
@@ -68,7 +69,7 @@ def run_consumer(server=None, port=None):
     trt_no_to_output_name_to_result = defaultdict(dict)
 
     conman = common.ConnectionManager()
-    writer = conman.try_connect(config["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)  #None
+    writer = await conman.try_connect(config["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)  #None
 
     no_of_trts_received = 0
     no_of_trts_expected = None
@@ -100,7 +101,7 @@ def run_consumer(server=None, port=None):
                     _.write(f"{datetime.now()} last expected env received\n")
 
                 out_ip = fbp_capnp.IP.new_message(content=json.dumps(trt_no_to_output_name_to_result))
-                writer.write(value=out_ip).wait()
+                await writer.write(value=out_ip)
 
                 # reset and wait for next round
                 trt_no_to_output_name_to_result.clear()
@@ -122,4 +123,4 @@ def run_consumer(server=None, port=None):
 
 
 if __name__ == "__main__":
-    run_consumer()
+    asyncio.run(capnp.run(run_consumer()))
