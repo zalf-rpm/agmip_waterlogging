@@ -58,11 +58,13 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "path_to_channel": "/home/berg/GitHub/mas-infrastructure/src/cpp/common/_cmake_debug/channel" if local_run else
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
-        "repetitions": "5",
-        "treatments": [1,2,3,4,5],
+        "repetitions": "100",
+        "treatments": "[1,2,3,4,5]",
     }
 
     common.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
+
+    treatments = json.loads(config["treatments"])
 
     path_to_out_folder = config['path_to_out']
     if not os.path.exists(path_to_out_folder):
@@ -94,7 +96,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         f"setups-file={config['setups-file']}",
         f"reader_sr={prod_chan_data['reader_sr']}",
         f"path_to_out={config['path_to_out']}",
-        f"treatments={json.dumps(config['treatments'])}",
+        f"treatments={config['treatments']}",
     ]))
 
     #with open(path_to_out_folder + "/spot_setup.out", "a") as _:
@@ -112,9 +114,11 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
 
     measurements = monica_run_lib.read_csv("data/measurements.csv", key="TRTNO",
                                            skip_lines=1, empty_value=np.nan)
-    observations_order = ["Z31D", "ADAT", "MDAT", "GWAM", "CWAA", "CWAM", "CNAM", "GNAM", "HIAM", "GWGM"]
+    observations_order = ["Z31D", "ADAT", "MDAT", "GWAM", "CWAA", "CWAM", "CNAM", "GNAM", "HIAM"]
     observations = []
     for trt_no in sorted(measurements.keys()):
+        if len(treatments) > 0 and trt_no not in treatments:
+            continue
         trt = measurements[trt_no]
         for output_name in observations_order:
             v = trt[output_name]
@@ -144,17 +148,10 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
                 p["derive_function"] = lambda _, _2: eval(row[8])
             params.append(p)
 
-    con_man = common.ConnectionManager()
-    cons_reader = await con_man.try_connect(cons_chan_data["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
-    prod_writer = await con_man.try_connect(prod_chan_data["writer_sr"], cast_as=fbp_capnp.Channel.Writer, retry_secs=1)
-    loop = asyncio.get_running_loop()
-
-    # configure MONICA setup for spotpy
-    #observations = crop_to_observations["WW"] 136978572957504
-
     spot_setup = None
     spot_setup = calibration_spotpy_setup_MONICA.spot_setup(params, observations, observations_order,
-                                                            prod_writer, cons_reader,
+                                                            prod_chan_data["writer_sr"],
+                                                            cons_chan_data["reader_sr"],
                                                             path_to_out_folder)
 
     rep = int(config["repetitions"]) #initial number was 10

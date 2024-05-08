@@ -46,8 +46,8 @@ async def run_producer(server=None, port=None, calibration=False):
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
         #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
-        "monica_path_to_climate_dir": "C:/Users/giri/Documents/GitHub/agmip_waterlogging/data",
-        #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
+        #"monica_path_to_climate_dir": "C:/Users/giri/Documents/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
         "treatments": "[]",
@@ -187,7 +187,6 @@ async def run_producer(server=None, port=None, calibration=False):
             # with open(config["path_to_out"] + "/spot_setup.out", "a") as _:
             #    _.write(f"{datetime.now()} connected\n")
 
-            env_template = None
             try:
                 in_ip = msg.value.as_struct(fbp_capnp.IP)
                 s: str = in_ip.content.as_text()
@@ -197,20 +196,36 @@ async def run_producer(server=None, port=None, calibration=False):
                 ps = sowing_ws["crop"]["cropParams"]
                 for pname, pval in params.items():
                     pname_arr = pname.split("_")
-                    i = None
-                    if len(pname_arr) == 2:
+                    i = j = None
+                    if len(pname_arr) >= 2:
                         pname = pname_arr[0]
-                        i = int(pname_arr[1])
+                        i = int(pname_arr[1]) - 1  # for the user we start counting at 1
+                        if len(pname_arr) >= 3:
+                            j = int(pname_arr[2]) - 1  # for the user we start counting at 1
                     if pname in ps["species"]:
-                        if i:
+                        old_val = ps["species"][pname]
+                        if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
+                            ps["species"][pname] = old_val[0]
+                        if i is not None:
                             if len(ps["species"][pname]) < i:
-                                ps["species"][pname][i] = pval
+                                if j is not None:
+                                    if len(ps["species"][pname][i]) < j:
+                                        ps["species"][pname][i][j] = pval
+                                else:
+                                    ps["species"][pname][i] = pval
                         else:
                             ps["species"][pname] = pval
                     elif pname in ps["cultivar"]:
-                        if i:
+                        old_val = ps["cultivar"][pname]
+                        if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
+                            ps["cultivar"][pname] = old_val[0]
+                        if i is not None:
                             if len(ps["cultivar"][pname]) > i:
-                                ps["cultivar"][pname][i] = pval
+                                if j is not None:
+                                    if len(ps["cultivar"][pname][i]) > j:
+                                        ps["cultivar"][pname][i][j] = pval
+                                else:
+                                    ps["cultivar"][pname][i] = pval
                         else:
                             ps["cultivar"][pname] = pval
             except Exception as e:
@@ -237,27 +252,17 @@ async def run_producer(server=None, port=None, calibration=False):
             dates.update(trt_no_to_fertilizers[trt_no].keys())
             dates.update(trt_no_to_irrigation[trt_no].keys())
 
-        worksteps : list = env_template["cropRotation"][0]["worksteps"]
-        worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
-        ld = worksteps[-1]["latest-date"]
-        worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+            worksteps : list = env_template["cropRotation"][0]["worksteps"]
+            worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
+            ld = worksteps[-1]["latest-date"]
+            worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+            worksteps[0]["PlantDensity"] = int(trt_no_to_plant[trt_no]["PLPOP"])
 
-        worksteps : list = env_template["cropRotation"][0]["worksteps"]
-        worksteps[0]["PlantingDensity"] = trt_no_to_plant[trt_no]["PLPOP"]
-        
-        # Iterate over the worksteps with their indices
-        for index, workstep in enumerate(worksteps):
-            if index < 4:  # First four entries are at indices 0, 1, 2, 3
-                workstep["PlantingDensity"] = 320
-            else:
-             workstep["PlantingDensity"] = 340
-
-
-        for date in sorted(dates):
-            if date in trt_no_to_fertilizers[trt_no]:
-                worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
-            if date in trt_no_to_irrigation[trt_no]:
-                worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+            for date in sorted(dates):
+                if date in trt_no_to_fertilizers[trt_no]:
+                    worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
+                if date in trt_no_to_irrigation[trt_no]:
+                    worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
 
             env_template["customId"] = {
                 "nodata": False,

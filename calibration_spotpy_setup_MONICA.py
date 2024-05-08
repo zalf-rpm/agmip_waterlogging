@@ -16,26 +16,51 @@
 # Copyright (C: Leibniz Centre for Agricultural Landscape Research (ZALF)
 
 import asyncio
+from threading import Thread
+
 import capnp
 from datetime import datetime
 import json
 import numpy as np
 import os
 from pathlib import Path
+from queue import SimpleQueue
 import spotpy
+
+import common
 
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
 
+async def send_receive(prod_writer_sr, prod_writer_queue: SimpleQueue, cons_reader_sr, cons_reader_queue: SimpleQueue):
+    async with capnp.kj_loop():
+        con_man = common.ConnectionManager()
+        cons_reader = await con_man.try_connect(cons_reader_sr, cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
+        prod_writer = await con_man.try_connect(prod_writer_sr, cast_as=fbp_capnp.Channel.Writer, retry_secs=1)
+
+        while True:
+            out_ip = prod_writer_queue.get()
+            await prod_writer.write(value=out_ip)
+            msg = await cons_reader.read()
+            cons_reader_queue.put(msg.value.as_struct(fbp_capnp.IP))
+
+
+def start_thread(prod_writer_sr, prod_writer_queue: SimpleQueue, cons_reader_sr, cons_reader_queue: SimpleQueue):
+    asyncio.run(send_receive(prod_writer_sr, prod_writer_queue, cons_reader_sr, cons_reader_queue))
+
+
 class spot_setup(object):
-    def __init__(self, user_params, observations, observations_order, prod_writer, cons_reader, path_to_out):
+    def __init__(self, user_params, observations, observations_order, prod_writer_sr, cons_reader_sr, path_to_out):
         self.user_params = user_params
         self.params = []
         self.observations = observations
         self.observations_order = observations_order
-        self.prod_writer = prod_writer
-        self.cons_reader = cons_reader
+        self.prod_writer_queue = SimpleQueue()
+        self.cons_reader_queue = SimpleQueue()
         self.path_to_out_file = path_to_out + "/spot_setup.out"
+        self.capnp_thread = Thread(target=start_thread, args=(prod_writer_sr, self.prod_writer_queue,
+                                                              cons_reader_sr, self.cons_reader_queue))
+        self.capnp_thread.start()
 
         if not os.path.exists(path_to_out):
             try:
@@ -62,26 +87,19 @@ class spot_setup(object):
         # vector = MaxAssimilationRate, AssimilateReallocation, RootPenetrationRate
         msg_content = dict(zip(vector.name, vector))
         out_ip = fbp_capnp.IP.new_message(content=json.dumps(msg_content))
-        loop = asyncio.get_running_loop()
-        async def write():
-            return self.prod_writer.write(value=out_ip)
-        asyncio.run_coroutine_threadsafe(write(), loop)
+        self.prod_writer_queue.put(out_ip)
         #await self.prod_writer.write(value=out_ip)
         with open(self.path_to_out_file, "a") as _:
             _.write(f"{datetime.now()} sent params to monica setup: {vector}\n")
         print("sent params to monica setup:", vector, flush=True)
 
-        async def read():
-            return self.cons_reader.read()
-        msg_f = asyncio.run_coroutine_threadsafe(read(), loop)
-        #f2 = asyncio.run_coroutine_threadsafe(self.cons_reader.read(), loop)
-        msg = msg_f.result()
+        in_ip = self.cons_reader_queue.get()
         #await self.cons_reader.read().wait()
         # check for end of data from in port
-        if msg.which() == "done":
-            return
+        #if msg.which() == "done":
+        #    return
 
-        in_ip = msg.value.as_struct(fbp_capnp.IP)
+        #in_ip = msg.value.as_struct(fbp_capnp.IP)
         s: str = in_ip.content.as_text()
         trt_no_to_output_name_to_result = json.loads(s)
 
@@ -94,10 +112,22 @@ class spot_setup(object):
         for trt_no in sorted(trt_no_to_output_name_to_result.keys()):
             output_name_to_result = trt_no_to_output_name_to_result[trt_no]
             for output_name in self.observations_order:
-                if output_name in output_name_to_result:
-                    sim_list.append(output_name_to_result[output_name])
+                if output_name == "HIAM":
+                    gwam = output_name_to_result.get("GWAM", None)
+                    cwam = output_name_to_result.get("CWAM", None)
+                    if gwam is not None and cwam is not None:
+                        sim_list.append(gwam / cwam * 100.0)
+                    else:
+                        sim_list.append(np.nan)
                 else:
-                    sim_list.append(np.nan)
+                    v = output_name_to_result[output_name]
+                    if v is np.nan:
+                        sim_list.append(np.nan)
+                        continue
+                    if output_name in ["Z31D", "ADAT", "MDAT"]:
+                        sim_list.append(int(datetime.fromisoformat(v).timetuple().tm_yday))
+                    else:
+                        sim_list.append(v)
 
         #with open(self.path_to_out_file, "a") as _:
         #    _.write(f"{datetime.now()} simulation and observation matchedcal-sp-set-M\n\n")
