@@ -122,11 +122,11 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         next(reader)
         for line in reader:
-            fert_temp = copy.deepcopy(fert_template)
-            trt_no = int(line[0])
-            fert_temp["date"] = line[2]
-            fert_temp["partition"][2] = line[3]
-            fert_temp["amount"][0] = float(line[6])
+            fert_temp = copy.deepcopy(fert_template) #fert_template --> crop json
+            trt_no = int(line[0]) # trt_no
+            fert_temp["date"] = line[2] #date
+            fert_temp["partition"][2] = line[3] # fertilizer_material
+            fert_temp["amount"][0] = float(line[6]) #N_in_applied_fertilizer
             trt_no_to_fertilizers[trt_no][fert_temp["date"]] = fert_temp
 
     trt_no_to_irrigation = defaultdict(dict)
@@ -138,9 +138,9 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         for line in reader:
             irrig_temp = copy.deepcopy(irrig_template)
-            trt_no = int(line[0])
-            irrig_temp["date"] = line[2]
-            irrig_temp["amount"][0] = float(line[4])
+            trt_no = int(line[0]) #TRTNO
+            irrig_temp["date"] = line[2] #date
+            irrig_temp["amount"][0] = float(line[4]) #irrig_amount_depth
             trt_no_to_irrigation[trt_no][irrig_temp["date"]] = irrig_temp
 
     trt_no_to_plant = defaultdict(dict)
@@ -152,12 +152,12 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         for line in reader:
             copy.deepcopy(irrig_template)
-            trt_no = int(line[0])
-            trt_no_to_plant[trt_no]["PDATE"] = line[2]
-            trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])
+            trt_no = int(line[0])#trt_no
+            trt_no_to_plant[trt_no]["PDATE"] = line[2] #date
+            trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])#plant_pop_at_planting
             # trt_no_to_plant[trt_no]["PLPOE"] = line[6]
-            trt_no_to_plant[trt_no]["PLRS"] = float(line[7])
-            trt_no_to_plant[trt_no]["PLDP"] = float(line[9])
+            trt_no_to_plant[trt_no]["PLRS"] = float(line[7]) #row_spacing
+            trt_no_to_plant[trt_no]["PLDP"] = float(line[9]) #planting_depth
             
 
     trt_no_to_meta = defaultdict(dict)
@@ -237,15 +237,27 @@ async def run_producer(server=None, port=None, calibration=False):
             dates.update(trt_no_to_fertilizers[trt_no].keys())
             dates.update(trt_no_to_irrigation[trt_no].keys())
 
-            worksteps : list = env_template["cropRotation"][0]["worksteps"]
-            worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
-            ld = worksteps[-1]["latest-date"]
-            worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
-            for date in sorted(dates):
-                if date in trt_no_to_fertilizers[trt_no]:
-                    worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
-                if date in trt_no_to_irrigation[trt_no]:
-                    worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+        worksteps : list = env_template["cropRotation"][0]["worksteps"]
+        worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
+        ld = worksteps[-1]["latest-date"]
+        worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+
+        worksteps : list = env_template["cropRotation"][0]["worksteps"]
+        worksteps[0]["PlantingDensity"] = trt_no_to_plant[trt_no]["PLPOP"]
+        
+        # Iterate over the worksteps with their indices
+        for index, workstep in enumerate(worksteps):
+            if index < 4:  # First four entries are at indices 0, 1, 2, 3
+                workstep["PlantingDensity"] = 320
+            else:
+             workstep["PlantingDensity"] = 340
+
+
+        for date in sorted(dates):
+            if date in trt_no_to_fertilizers[trt_no]:
+                worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
+            if date in trt_no_to_irrigation[trt_no]:
+                worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
 
             env_template["customId"] = {
                 "nodata": False,
