@@ -1,0 +1,7 @@
+name;position in array;low;high;stepsize;optguess;minbound;maxbound;derived params
+criticalOxygenContent;0;0.05;0.08;0.001;;0.05;0.08;
+criticalOxygenContent;1;0.05;0.08;0.001;;0.05;0.08;
+criticalOxygenContent;2;0.05;0.08;0.001;;0.05;0.08;
+criticalOxygenContent;3;0.05;0.08;0.001;;0.05;0.08;
+criticalOxygenContent;4;0.05;0.08;0.001;;0.05;0.08;
+criticalOxygenContent;5;0.05;0.08;0.001;;0.05;0.08;
