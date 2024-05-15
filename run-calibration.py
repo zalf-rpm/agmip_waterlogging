@@ -55,10 +55,12 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "setups-file": "sim_setups_calibration.csv",
         "path_to_out": "out/",
         "run-setups": "[1]",
-        "path_to_channel": "/home/berg/GitHub/mas-infrastructure/src/cpp/common/_cmake_debug/channel" if local_run else
+        #"path_to_channel": "/home/berg/GitHub/mas-infrastructure/src/cpp/common/_cmake_debug/channel" if local_run else
+        #"/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
+        "path_to_channel": "c:/Users/giri/Documents/monica_win64_3.6.13/bin/channel" if local_run else
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
-        "repetitions": "2000",
+        "repetitions": "10000",
         "treatments": "[1,2,3,4,5]",
     }
 
