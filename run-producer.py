@@ -64,6 +64,7 @@ async def run_producer(server=None, port=None, calibration=False):
 
     calibration = config["calibration"]
     if calibration:
+        #sim_json["output"]["events"] = sim_json["output"]["debug_events"]
         sim_json["output"]["events"] = sim_json["output"]["calibration_events"]
 
     with open(config["site.json"]) as _:
@@ -81,6 +82,8 @@ async def run_producer(server=None, port=None, calibration=False):
         "sim": sim_json,
         "climate": ""  # climate_csv
     })
+
+    worksteps: list = copy.deepcopy(env_template["cropRotation"][0]["worksteps"])
 
     soil_profiles = defaultdict(list)
     with open(f"{config['path_to_data_dir']}/Soil_layers.csv") as file:
@@ -122,11 +125,11 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         next(reader)
         for line in reader:
-            fert_temp = copy.deepcopy(fert_template) #fert_template --> crop json
-            trt_no = int(line[0]) # trt_no
-            fert_temp["date"] = line[2] #date
-            fert_temp["partition"][2] = line[3] # fertilizer_material
-            fert_temp["amount"][0] = float(line[6]) #N_in_applied_fertilizer
+            fert_temp = copy.deepcopy(fert_template)  # fert_template --> crop json
+            trt_no = int(line[0])  # trt_no
+            fert_temp["date"] = line[2]  # date
+            fert_temp["partition"][2] = line[3]  # fertilizer_material
+            fert_temp["amount"][0] = float(line[6])  # N_in_applied_fertilizer
             trt_no_to_fertilizers[trt_no][fert_temp["date"]] = fert_temp
 
     trt_no_to_irrigation = defaultdict(dict)
@@ -138,9 +141,9 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         for line in reader:
             irrig_temp = copy.deepcopy(irrig_template)
-            trt_no = int(line[0]) #TRTNO
-            irrig_temp["date"] = line[2] #date
-            irrig_temp["amount"][0] = float(line[4]) #irrig_amount_depth
+            trt_no = int(line[0])  # TRTNO
+            irrig_temp["date"] = line[2]  # date
+            irrig_temp["amount"][0] = float(line[4])  # irrig_amount_depth
             trt_no_to_irrigation[trt_no][irrig_temp["date"]] = irrig_temp
 
     trt_no_to_plant = defaultdict(dict)
@@ -152,12 +155,12 @@ async def run_producer(server=None, port=None, calibration=False):
         next(reader)
         for line in reader:
             copy.deepcopy(irrig_template)
-            trt_no = int(line[0])#trt_no
-            trt_no_to_plant[trt_no]["PDATE"] = line[2] #date
-            trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])#plant_pop_at_planting
+            trt_no = int(line[0])  # trt_no
+            trt_no_to_plant[trt_no]["PDATE"] = line[2]  # date
+            trt_no_to_plant[trt_no]["PLPOP"] = float(line[5])  # plant_pop_at_planting
             # trt_no_to_plant[trt_no]["PLPOE"] = line[6]
-            trt_no_to_plant[trt_no]["PLRS"] = float(line[7]) #row_spacing
-            trt_no_to_plant[trt_no]["PLDP"] = float(line[9]) #planting_depth
+            trt_no_to_plant[trt_no]["PLRS"] = float(line[7])  # row_spacing
+            trt_no_to_plant[trt_no]["PLDP"] = float(line[9])  # planting_depth
             
 
     trt_no_to_meta = defaultdict(dict)
@@ -177,6 +180,7 @@ async def run_producer(server=None, port=None, calibration=False):
         conman = common.ConnectionManager()
         reader = await conman.try_connect(config["reader_sr"], cast_as=fbp_capnp.Channel.Reader, retry_secs=1)
 
+    iter_count = 0
     while True:
         if calibration:
             msg = await reader.read()
@@ -190,9 +194,9 @@ async def run_producer(server=None, port=None, calibration=False):
             try:
                 in_ip = msg.value.as_struct(fbp_capnp.IP)
                 s: str = in_ip.content.as_text()
-                params = json.loads(s)  # keys: MaxAssimilationRate, AssimilateReallocation, RootPenetrationRate
+                params: dict = json.loads(s)  # keys: MaxAssimilationRate, AssimilateReallocation, RootPenetrationRate
 
-                sowing_ws: dict = env_template["cropRotation"][0]["worksteps"][0]
+                sowing_ws: dict = worksteps[0]
                 ps = sowing_ws["crop"]["cropParams"]
                 for pname, pval in params.items():
                     pname_arr = pname.split("_")
@@ -252,24 +256,29 @@ async def run_producer(server=None, port=None, calibration=False):
             dates.update(trt_no_to_fertilizers[trt_no].keys())
             dates.update(trt_no_to_irrigation[trt_no].keys())
 
-            worksteps : list = env_template["cropRotation"][0]["worksteps"]
-            worksteps[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
-            ld = worksteps[-1]["latest-date"]
-            worksteps[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
-            worksteps[0]["PlantDensity"] = int(trt_no_to_plant[trt_no]["PLPOP"])
+            worksteps_copy = copy.deepcopy(worksteps)
+            worksteps_copy[0]["date"] = trt_no_to_plant[trt_no]["PDATE"]
+            ld = worksteps_copy[-1]["latest-date"]
+            worksteps_copy[-1]["latest-date"] = f"{int(trt_no_to_plant[trt_no]['PDATE'][:4])+1}{ld[4:]}"
+            worksteps_copy[0]["PlantDensity"] = int(trt_no_to_plant[trt_no]["PLPOP"])
 
             for date in sorted(dates):
                 if date in trt_no_to_fertilizers[trt_no]:
-                    worksteps.insert(-1, trt_no_to_fertilizers[trt_no][date])
+                    worksteps_copy.insert(-1, copy.deepcopy(trt_no_to_fertilizers[trt_no][date]))
                 if date in trt_no_to_irrigation[trt_no]:
-                    worksteps.insert(-1, trt_no_to_irrigation[trt_no][date])
+                    worksteps_copy.insert(-1, copy.deepcopy(trt_no_to_irrigation[trt_no][date]))
+
+            env_template["cropRotation"][0]["worksteps"] = worksteps_copy
 
             env_template["customId"] = {
                 "nodata": False,
-                "trt_no": trt_no,
-                "soil_name": meta['SOIL_NAME']
+                "trt_no": int(trt_no),
+                #"soil_name": meta["SOIL_NAME"]
             }
             socket.send_json(env_template)
+            #with open(f"out/env_template_trt_no-{trt_no}_iter_count-{iter_count}.json", "w") as _:
+            #    json.dump(env_template, _, indent=2)
+            #iter_count += 1
             no_of_trts += 1
             print(f"{os.path.basename(__file__)} sent job {no_of_trts}")
 
@@ -277,7 +286,7 @@ async def run_producer(server=None, port=None, calibration=False):
         env_template["customId"] = {
             "no_of_trts": no_of_trts,
             "nodata": True,
-            "soil_name": meta['SOIL_NAME']
+            #"soil_name": meta["SOIL_NAME"]
         }
         socket.send_json(env_template)
         print(f"{os.path.basename(__file__)} done")

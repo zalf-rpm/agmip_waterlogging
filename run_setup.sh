@@ -15,18 +15,16 @@ out_proxy_pid=$!
 echo "out_proxy_pid -> $out_proxy_pid"
 
 monica_pids=()
-for _ in {1..2}
+for _ in {1..5}
 do
   $PATH_TO_MONICA_BIN_DIR/monica-zmq-server -ci -i tcp://localhost:6677 -co -o tcp://localhost:7788 &
   monica_pids+=($!)
 done
 echo "monica_pids -> ${monica_pids[*]}"
 
-echo "run producer"
-$PATH_TO_PYTHON run-producer.py &
-echo "run consumer"
-$PATH_TO_PYTHON run-consumer.py
-echo "consumer finished -> kill all servers and proxies"
+echo "run calibration script"
+$PATH_TO_PYTHON run-calibration.py
+echo "calibration finished -> kill all servers and proxies"
 
 kill "$in_proxy_pid"
 echo "killed in_proxy_pid -> $in_proxy_pid"

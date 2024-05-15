@@ -18,6 +18,7 @@
 import asyncio
 import capnp
 from collections import defaultdict
+import csv
 from datetime import datetime
 import json
 import os
@@ -25,6 +26,7 @@ import sys
 import zmq
 
 import common
+import monica_io3
 
 fbp_capnp = capnp.load("capnp_schemas/fbp.capnp", imports=[])
 
@@ -90,6 +92,9 @@ async def run_consumer(server=None, port=None):
 
                 trt_no = custom_id["trt_no"]
 
+                #write_monica_out(trt_no, msg)
+                #continue
+
                 for data in msg.get("data", []):
                     results = data.get("results", [])
                     for vals in results:
@@ -120,6 +125,36 @@ async def run_consumer(server=None, port=None):
             break
 
     #print("exiting run_consumer()")
+
+
+def write_monica_out(trt_no, msg):
+    path_to_out_dir = "out"
+    if not os.path.exists(path_to_out_dir):
+        try:
+            os.makedirs(path_to_out_dir)
+        except OSError:
+            print("c: Couldn't create dir:", path_to_out_dir, "! Exiting.")
+            exit(1)
+
+    # with open("out/out-" + str(i) + ".csv", 'wb') as _:
+    path_to_file = path_to_out_dir + "/trt_no-" + str(trt_no) + ".csv"
+    with open(path_to_file, "w", newline='') as _:
+        writer = csv.writer(_, delimiter=",")
+        for data_ in msg.get("data", []):
+            results = data_.get("results", [])
+            orig_spec = data_.get("origSpec", "")
+            output_ids = data_.get("outputIds", [])
+            if len(results) > 0:
+                writer.writerow([orig_spec.replace("\"", "")])
+                for row in monica_io3.write_output_header_rows(output_ids,
+                                                               include_header_row=True,
+                                                               include_units_row=True,
+                                                               include_time_agg=False):
+                    writer.writerow(row)
+                for row in monica_io3.write_output_obj(output_ids, results):
+                    writer.writerow(row)
+            writer.writerow([])
+    print("wrote:", path_to_file)
 
 
 if __name__ == "__main__":

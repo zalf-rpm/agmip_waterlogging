@@ -58,7 +58,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "path_to_channel": "/home/berg/GitHub/mas-infrastructure/src/cpp/common/_cmake_debug/channel" if local_run else
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
-        "repetitions": "100",
+        "repetitions": "2000",
         "treatments": "[1,2,3,4,5]",
     }
 
@@ -115,10 +115,12 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
     measurements = monica_run_lib.read_csv("data/measurements.csv", key="TRTNO",
                                            skip_lines=1, empty_value=np.nan)
     observations_order = ["Z31D", "ADAT", "MDAT", "GWAM", "CWAA", "CWAM", "CNAM", "GNAM", "HIAM"]
+    observation_treatment_nos = []
     observations = []
     for trt_no in sorted(measurements.keys()):
         if len(treatments) > 0 and trt_no not in treatments:
             continue
+        observation_treatment_nos.append(trt_no)
         trt = measurements[trt_no]
         for output_name in observations_order:
             v = trt[output_name]
@@ -149,10 +151,11 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
             params.append(p)
 
     spot_setup = None
-    spot_setup = calibration_spotpy_setup_MONICA.spot_setup(params, observations, observations_order,
-                                                            prod_chan_data["writer_sr"],
-                                                            cons_chan_data["reader_sr"],
-                                                            path_to_out_folder)
+    spot_setup = calibration_spotpy_setup_MONICA.SpotpySetup(params, observations, observations_order,
+                                                             observation_treatment_nos,
+                                                             prod_chan_data["writer_sr"],
+                                                             cons_chan_data["reader_sr"],
+                                                             path_to_out_folder)
 
     rep = int(config["repetitions"]) #initial number was 10
     results = []

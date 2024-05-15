@@ -1,0 +1,22 @@
+Total Duration: 2097.35 seconds
+Total Repetitions: 32397
+Minimal objective value: 80.5414
+Corresponding parameter setting:
+StageTemperatureSum_1: 123.655
+StageTemperatureSum_2: 261.068
+StageTemperatureSum_3: 288.526
+StageTemperatureSum_4: 198.108
+StageTemperatureSum_5: 406.214
+BaseDaylength_2: 5.10909
+BaseDaylength_3: 5.47797
+BaseDaylength_4: 7.25634
+DaylengthRequirement_2: 17.145
+DaylengthRequirement_3: 17.4352
+DaylengthRequirement_4: 16.416
+SpecificLeafArea_1: 0.00224698
+SpecificLeafArea_2: 0.00210567
+SpecificLeafArea_3: 0.00202583
+SpecificLeafArea_4: 0.00194982
+SpecificLeafArea_5: 0.00160144
+******************************
+

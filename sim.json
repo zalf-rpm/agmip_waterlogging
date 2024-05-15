@@ -64,6 +64,28 @@
                 "TotBiomN|CNAM",
                 "YieldNc|GNAM"
             ]
+        ],
+        "debug_events": [
+            "daily", [
+                "Date",
+                "Crop",
+                "LAI",
+                "Yield",
+                "AbBiom|CWAD",
+                "Tra|TRANS",
+                "Act_ET|ETa",
+                "RunOff|Roff",
+                "PercolationRate|DPER",
+                "NLeach|NLEA",
+                "Crop",
+                "Stage",
+                "Tavg",
+                "Globrad",
+                "Precip",
+                "TraDef",
+                "Irrig",
+                ["Mois|SWC", [1, 20]]
+            ]
         ]
     }, 
     "include-file-base-path": "data/",
