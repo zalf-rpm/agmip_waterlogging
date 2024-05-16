@@ -113,7 +113,7 @@ def run_consumer(server=None, port=None):
                     layer_swc_vals = vals["SWC"][from_layer_index:to_layer_index+1]
                     swcs.append(sum(layer_swc_vals) / len(layer_swc_vals))
                 row = [trt_no, dap, -1, vals["CWAD"], vals["LAI"], vals["TRANS"], vals["ETa"],
-                       vals["Roff"], vals["DPER"], vals["NLEA"]] + swcs
+                       vals["Roff"], vals["DPER"][0], vals["NLEA"]] + swcs
                 daily_writer.writerow(row)
 
             data: dict = msg["data"][1]

@@ -60,7 +60,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "path_to_channel": "c:/Users/giri/Documents/monica_win64_3.6.13/bin/channel" if local_run else
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
-        "repetitions": "10000",
+        "repetitions": "100",
         "treatments": "[1,2,3,4,5]",
     }
 
@@ -246,6 +246,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         proc.terminate()
 
     print(f"{os.path.basename(__file__)} finished")
+
 
 if __name__ == "__main__":
     #run_calibration()

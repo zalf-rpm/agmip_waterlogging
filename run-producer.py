@@ -206,7 +206,7 @@ async def run_producer(server=None, port=None, calibration=False):
                         i = int(pname_arr[1]) - 1  # for the user we start counting at 1
                         if len(pname_arr) >= 3:
                             j = int(pname_arr[2]) - 1  # for the user we start counting at 1
-                    if pname in ps["species"]:
+                    if pname in ps["species"] or ("=" in ps["species"] and pname in ps["species"]["="]):
                         old_val = ps["species"][pname]
                         if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
                             ps["species"][pname] = old_val[0]
@@ -219,7 +219,7 @@ async def run_producer(server=None, port=None, calibration=False):
                                     ps["species"][pname][i] = pval
                         else:
                             ps["species"][pname] = pval
-                    elif pname in ps["cultivar"]:
+                    elif pname in ps["cultivar"] or ("=" in ps["cultivar"] and pname in ps["cultivar"]["="]):
                         old_val = ps["cultivar"][pname]
                         if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
                             ps["cultivar"][pname] = old_val[0]
@@ -273,7 +273,7 @@ async def run_producer(server=None, port=None, calibration=False):
             env_template["customId"] = {
                 "nodata": False,
                 "trt_no": int(trt_no),
-                #"soil_name": meta["SOIL_NAME"]
+                "soil_name": meta["SOIL_NAME"]
             }
             socket.send_json(env_template)
             #with open(f"out/env_template_trt_no-{trt_no}_iter_count-{iter_count}.json", "w") as _:
@@ -286,7 +286,7 @@ async def run_producer(server=None, port=None, calibration=False):
         env_template["customId"] = {
             "no_of_trts": no_of_trts,
             "nodata": True,
-            #"soil_name": meta["SOIL_NAME"]
+            "soil_name": meta["SOIL_NAME"]
         }
         socket.send_json(env_template)
         print(f"{os.path.basename(__file__)} done")
