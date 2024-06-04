@@ -46,7 +46,7 @@ async def run_producer(server=None, port=None, calibration=False):
         "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
         #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
-        "monica_path_to_climate_dir": "C:/Users/giri/Documents/GitHub/agmip_waterlogging/data",
+        "monica_path_to_climate_dir": "C:/Users/palka/GitHub/agmip_waterlogging/data",
         #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
@@ -66,6 +66,7 @@ async def run_producer(server=None, port=None, calibration=False):
     if calibration:
         #sim_json["output"]["events"] = sim_json["output"]["debug_events"]
         sim_json["output"]["events"] = sim_json["output"]["calibration_events"]
+    #sim_json["output"]["events"] = sim_json["output"]["debug_events"]
 
     with open(config["site.json"]) as _:
         site_json = json.load(_)
@@ -104,16 +105,16 @@ async def run_producer(server=None, port=None, calibration=False):
             prev_depth_m = current_depth_m
             layer = {
                 "Thickness": [thickness, "m"],
-                #"PoreVolume": [float(line[2]), "m3/m3"],
-                #"FieldCapacity": [float(line[3]), "m3/m3"],
-                #"PermanentWiltingPoint": [float(line[5]), "m3/m3"],
-                #"Lambda": float(line[9]),
+                "PoreVolume": [float(line[2]), "m3/m3"],
+                "FieldCapacity": [float(line[3]), "m3/m3"],
+                "PermanentWiltingPoint": [float(line[5]), "m3/m3"],
+                "Lambda": float(line[9]),
                 "SoilBulkDensity": [float(line[10])*1000.0, "kg/m3"],
                 "SoilOrganicCarbon": [float(line[11]), "%"],
                 "Clay": [float(line[12])/100.0, "m3/m3"],
                 "Sand": [float(line[14])/100.0, "m3/m3"],
-                #"Sceleton": [float(line[15]), "m3/m3"],
-                #"pH": float(line[18])
+                "Sceleton": [float(line[15]), "m3/m3"],
+                "pH": float(line[18])
             }
             soil_profiles[soil_name].append(layer)
 
@@ -198,6 +199,7 @@ async def run_producer(server=None, port=None, calibration=False):
 
                 sowing_ws: dict = worksteps[0]
                 ps = sowing_ws["crop"]["cropParams"]
+                cps = env_template["params"]["userCropParameters"]
                 for pname, pval in params.items():
                     pname_arr = pname.split("_")
                     i = j = None
@@ -211,9 +213,9 @@ async def run_producer(server=None, port=None, calibration=False):
                         if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
                             ps["species"][pname] = old_val[0]
                         if i is not None:
-                            if len(ps["species"][pname]) < i:
+                            if len(ps["species"][pname]) > i:
                                 if j is not None:
-                                    if len(ps["species"][pname][i]) < j:
+                                    if len(ps["species"][pname][i]) > j:
                                         ps["species"][pname][i][j] = pval
                                 else:
                                     ps["species"][pname][i] = pval
@@ -232,6 +234,19 @@ async def run_producer(server=None, port=None, calibration=False):
                                     ps["cultivar"][pname][i] = pval
                         else:
                             ps["cultivar"][pname] = pval
+                    elif pname in cps or ("=" in cps and pname in cps["="]):
+                        old_val = cps[pname]
+                        if isinstance(old_val, list) and len(old_val) > 1 and isinstance(old_val[1], str):
+                            cps[pname] = old_val[0]
+                        if i is not None:
+                            if len(cps[pname]) > i:
+                                if j is not None:
+                                    if len(cps[pname][i]) > j:
+                                        cps[pname][i][j] = pval
+                                else:
+                                    cps[pname][i] = pval
+                        else:
+                            cps[pname] = pval
             except Exception as e:
                 print(f"{os.path.basename(__file__)} exception: {e}")
                 raise e
@@ -246,9 +261,12 @@ async def run_producer(server=None, port=None, calibration=False):
                 f"{config['monica_path_to_climate_dir']}/Weather_daily_{meta['WST_NAME']}.csv"
 
             env_template["params"]["siteParameters"]["SoilProfileParameters"] = soil_profiles[meta['SOIL_NAME']]
+            #env_template["params"]["siteParameters"]["SoilProfileParameters"] = site_json[meta['SOIL_NAME']]
+
 
             env_template["params"]["siteParameters"]["HeightNN"] = float(meta["FLELE"])
             env_template["params"]["siteParameters"]["Latitude"] = float(meta["FL_LAT"])
+            env_template["cropRotation"][0]["worksteps"][0]["crop"]["cropParams"]["cultivar"]["CropSpecificMaxRootingDepth"] = float(meta["SLRTD"])
             #env_template["params"]["siteParameters"]["Slope"] = float(site["Slope"])
 
             # complete crop rotation
@@ -276,9 +294,9 @@ async def run_producer(server=None, port=None, calibration=False):
                 "soil_name": meta["SOIL_NAME"]
             }
             socket.send_json(env_template)
-            #with open(f"out/env_template_trt_no-{trt_no}_iter_count-{iter_count}.json", "w") as _:
-            #    json.dump(env_template, _, indent=2)
-            #iter_count += 1
+            with open(f"out/env_template_trt_no-{trt_no}_iter_count-{iter_count}.json", "w") as _:
+                json.dump(env_template, _, indent=2)
+            iter_count += 1
             no_of_trts += 1
             print(f"{os.path.basename(__file__)} sent job {no_of_trts}")
 

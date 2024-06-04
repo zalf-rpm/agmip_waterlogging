@@ -57,11 +57,12 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
         "run-setups": "[1]",
         #"path_to_channel": "/home/berg/GitHub/mas-infrastructure/src/cpp/common/_cmake_debug/channel" if local_run else
         #"/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
-        "path_to_channel": "c:/Users/giri/Documents/monica_win64_3.6.13/bin/channel" if local_run else
+        "path_to_channel": "C:/MONICA/monica_win64_3.6.21/bin/channel" if local_run else
         "/home/rpm/start_manual_test_services/GitHub/mas-infrastructure/src/cpp/common/_cmake_release/channel",
         "path_to_python": "python" if local_run else "/home/rpm/.conda/envs/clim4cast/bin/python",
-        "repetitions": "100",
-        "treatments": "[1,2,3,4,5]",
+        "repetitions": "10000",
+        #"treatments": "[1,2,3,4,5]",
+        "treatments": "[6,7,8,9,10,11,12,13]",
     }
 
     common.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -116,7 +117,9 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
 
     measurements = monica_run_lib.read_csv("data/measurements.csv", key="TRTNO",
                                            skip_lines=1, empty_value=np.nan)
-    observations_order = ["Z31D", "ADAT", "MDAT", "GWAM", "CWAA", "CWAM", "CNAM", "GNAM", "HIAM"]
+    #observations_order = ["GWAM","CWAA","CWAM","CNAM","GNAM","HIAM","GWGM"] ##I NEED TO CHANCE THIS FOR THE STEP" CALIBRATION##
+    #observations_order = ["Z31D", "ADAT", "MDAT"]
+    observations_order = ["GWAM"]
     observation_treatment_nos = []
     observations = []
     for trt_no in sorted(measurements.keys()):
@@ -136,7 +139,7 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
 
     # read parameters which are to be calibrated
     params = []
-    with open("data/calibratethese.csv") as params_csv:
+    with open("data/calibratethese_step2.csv") as params_csv:
         dialect = csv.Sniffer().sniff(params_csv.read(), delimiters=';,\t')
         params_csv.seek(0)
         reader = csv.reader(params_csv, dialect)
@@ -170,7 +173,9 @@ async def run_calibration(server=None, prod_port=None, cons_port=None):
     #kstop = max number of evolution loops before convergence
     #peps = convergence criterion
     #pcento = percent change allowed in kstop loops before convergence
-    sampler.sample(rep, ngs=len(params)*2, peps=0.001, pcento=0.001)
+    #sampler.sample(rep, ngs=len(params)*2, peps=1, pcento=1) ## I feel this should be sampler.sample(rep)
+    #sampler.sample(10000)
+    sampler.sample(rep)
 
     #with open(path_to_out_folder + "/spot_setup.out", "a") as _:
     #    _.write(f"{datetime.now()} sampler starts run-cal\n")

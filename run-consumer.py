@@ -23,6 +23,7 @@ from collections import defaultdict
 import zmq
 import shared
 
+import monica_io3
 
 def run_consumer(server=None, port=None):
     config = {
@@ -52,14 +53,14 @@ def run_consumer(server=None, port=None):
     daily_f.write(
         "Tret: 1 to 13,Day after planting,Zadocks phenology stage,Total above biomass,Leaf Area Index,Daily transpiration,Actual evapotranspiration,Runoff,Deep Percolation,N Leaching,Soil Water Content_layer_1,Soil Water Content_layer_2,Soil Water Content_layer_3,Soil Water Content_layer_4,Soil Water Content_layer_5,Soil Water Content_layer_6,Soil Water Content_layer_7,Soil Water Content_layer_8,Soil Water Content_layer_9,Soil Water Content_layer_10,Soil Water Content_layer_11,Soil Water Content_layer_12,Soil Water Content_layer_13,Soil Water Content_layer_14,Soil Water Content_layer_15\n")
     daily_f.write(
-        "Treatment,DAP,ZDPH,CWAD,LAI,TRANS,ETa,Roff,DPER,NLEA,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC\n")
+        "Treatment,DAP,ZDPH,CWAD,LAI,TRANS,ETa,Roff,DPER,NLEA,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC,SWC\n") ##This needs to change##
     daily_f.flush()
     daily_writer = csv.writer(daily_f, delimiter=",")
 
     crop_filepath = f"{path_to_out_dir}/Ex_1a_MONICA_calib_Results.csv"
     crop_f = open(crop_filepath, "wt", newline="", encoding="utf-8")
     crop_f.write(
-        ",Grain yield,Grain number ,grain unit weight ,Maximum Leaf Area Index,Total biomass at maturity ,Root Biomass\n")
+        ",Grain yield,Grain number ,grain unit weight ,Maximum Leaf Area Index,Total biomass at maturity ,Root Biomass\n") ##This needs to change##
     crop_f.write("Treatment,GWAD,G#AD,GWGD,LAID,CWAD,RWAD\n")
     crop_f.flush()
     crop_writer = csv.writer(crop_f, delimiter=",")
@@ -85,6 +86,9 @@ def run_consumer(server=None, port=None):
             trt_no = custom_id.get("trt_no", None)
             soil_name = custom_id.get("soil_name", None)
 
+            #write_monica_out(trt_no, msg)
+            #continue
+
             print(f"{os.path.basename(__file__)} received result trt_no: {trt_no}")
 
             # [(layer_bottom_depth_cm, layer_index), ...]
@@ -92,6 +96,8 @@ def run_consumer(server=None, port=None):
                 "CH5531001": [(5, 0), (10, 0), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5), (70, 6),
                               (90, (7, 8)), (110, (9, 10)), (130, (11, 12)), (150, (13, 14)),
                               (170, (15, 16)), (190, (17, 18)), (210, 19)],
+                "LLWatelg": [(5, 0), (15, (0, 1)), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5),
+                               (70, 6), (90, (7, 8)), (110, (9, 10)), (125, (11, 13))],
                 "LLWatelg01": [(5, 0), (15, (0, 1)), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5),
                                (70, 6), (90, (7, 8)), (110, (9, 10)), (125, (11, 13))]
             }.get(soil_name, None)
@@ -118,7 +124,9 @@ def run_consumer(server=None, port=None):
 
             data: dict = msg["data"][1]
             vals: dict = data["results"][0]
-            row = [trt_no, vals["GWAD"], -1, -1, vals["LAID"], vals["CWAD"], vals["RWAD"]]
+            data2: dict = msg["data"][2]
+            vals2: dict = data2["results"][0]
+            row = [trt_no, vals2["GWAD"], -1, -1, vals["LAID"], vals2["CWAD"], vals2["RWAD"]]
             crop_writer.writerow(row)
 
         except Exception as e:
@@ -127,7 +135,36 @@ def run_consumer(server=None, port=None):
     daily_f.close()
     crop_f.close()
 
-print(f"{os.path.basename(__file__)} exiting run_consumer()")
+    print(f"{os.path.basename(__file__)} exiting run_consumer()")
+
+def write_monica_out(trt_no, msg):
+    path_to_out_dir = "out"
+    if not os.path.exists(path_to_out_dir):
+        try:
+            os.makedirs(path_to_out_dir)
+        except OSError:
+            print("c: Couldn't create dir:", path_to_out_dir, "! Exiting.")
+            exit(1)
+
+    # with open("out/out-" + str(i) + ".csv", 'wb') as _:
+    path_to_file = path_to_out_dir + "/trt_no-" + str(trt_no) + ".csv"
+    with open(path_to_file, "w", newline='') as _:
+        writer = csv.writer(_, delimiter=";")
+        for data_ in msg.get("data", []):
+            results = data_.get("results", [])
+            orig_spec = data_.get("origSpec", "")
+            output_ids = data_.get("outputIds", [])
+            if len(results) > 0:
+                writer.writerow([orig_spec.replace("\"", "")])
+                for row in monica_io3.write_output_header_rows(output_ids,
+                                                               include_header_row=True,
+                                                               include_units_row=False,
+                                                               include_time_agg=False):
+                    writer.writerow(row)
+                for row in monica_io3.write_output_obj(output_ids, results):
+                    writer.writerow(row)
+            writer.writerow([])
+    print("wrote:", path_to_file)
 
 
 if __name__ == "__main__":

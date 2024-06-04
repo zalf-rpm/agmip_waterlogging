@@ -1,0 +1,11 @@
+name,position in array,low,high,stepsize,optguess,minbound,maxbound,derived params
+SpecificLeafArea,1,0.0005,0.003,0.0001,,,,
+SpecificLeafArea,2,0.0005,0.003,0.0001,,,,
+SpecificLeafArea,3,0.0005,0.003,0.0001,,,,
+SpecificLeafArea,4,0.0005,0.003,0.0001,,,,
+SpecificLeafArea,5,0.0005,0.003,0.0001,,,,
+SpecificLeafArea,6,0.0005,0.003,0.0001,,,,
+MaxAssimilationRate,,20,35,1,,,,
+StageTemperatureSum,5,200,600,1,314,,,
+StageTemperatureSum,6,15,35,1,25,,,
+VernalisationRequirement,2,25,75,1,,,,

@@ -78,7 +78,7 @@ class SpotpySetup(object):
                 par["name"] = f"{par_name}_{array_indices}"  # spotpy does not allow two parameters to have the same name
                 del par["array"]
             if "derive_function" not in par:  # spotpy does not care about derived params
-                self.params.append(spotpy.parameter.Uniform(**par))
+                self.params.append(spotpy.parameter.Uniform(**par)) ##Is this where I set the distribution?
 
     def parameters(self):
         return spotpy.parameter.generate(self.params)
@@ -140,4 +140,4 @@ class SpotpySetup(object):
         return self.observations
 
     def objectivefunction(self, simulation, evaluation):
-        return spotpy.objectivefunctions.rmse(evaluation, simulation)
+        return spotpy.objectivefunctions.rmse(evaluation, simulation) ## I guess this should be negative

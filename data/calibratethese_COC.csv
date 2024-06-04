@@ -1,7 +1,0 @@
-name,position in array,low,high,step,optguess,minbound,maxbound,derived params
-criticalOxygenContent,1,0.05,0.08,0.001,,,,,
-criticalOxygenContent,2,0.05,0.08,0.001,,,,,
-criticalOxygenContent,3,0.05,0.08,0.001,,,,,
-criticalOxygenContent,4,0.05,0.08,0.001,,,,,
-criticalOxygenContent,5,0.05,0.08,0.001,,,,,
-criticalOxygenContent,6,0.05,0.08,0.001,,,,,

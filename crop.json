@@ -4,7 +4,7 @@
             "is-winter-crop": false, 
             "residueParams": ["include-from-file", "monica-parameters/crop-residues/wheat.json"],
             "cropParams": {
-                "cultivar": ["include-from-file", "monica-parameters/crops/wheat/winter-wheat_opt.json"],
+                "cultivar": ["include-from-file", "monica-parameters/crops/wheat/winter-wheat_1_2.json"],
                 "species": ["include-from-file", "monica-parameters/crops/wheat.json"]
             }
         }
@@ -53,6 +53,7 @@
         }
     ], 
     "CropParameters": {
-        "=": ["include-from-file", "monica-parameters/general/crop.json"]
+        "=": ["include-from-file", "monica-parameters/general/crop.json"],
+		"TimeUnderAnoxiaThreshold": [4, 4, 4, 4, 4, 4]
     }
 }

@@ -43,10 +43,14 @@
             ],
             "crop", [
                 ["LAI|LAID", "MAX"],
-                "Yield",
-                ["AbBiom|CWAD", "LAST"],
-                ["OrgBiom|RWAD", "ROOT", "LAST"],
-                ["OrgBiom|GWAD", "FRUIT", "LAST"]
+                ["AbBiom|CWAx", "LAST"],
+                ["OrgBiom|RWAx", "ROOT", "LAST"],
+                ["OrgBiom|GWAx", "FRUIT", "LAST"]
+            ],
+            "maturity", [
+                ["OrgBiom|GWAD", "FRUIT"],
+                "AbBiom|CWAD",
+                ["OrgBiom|RWAD", "ROOT"]
             ]
         ],
         "calibration_events": [
@@ -89,10 +93,10 @@
         ]
     }, 
     "include-file-base-path": "data/",
-    "NitrogenResponseOn": true,
+    "NitrogenResponseOn": false,
     "EmergenceMoistureControlOn": true,
+    "EmergenceFloodingControlOn": false,
     "WaterDeficitResponseOn": true,
-    "EmergenceFloodingControlOn": true,
     "NumberOfLayers": 20,
     "LayerThickness": [0.1, "m"],
     "UseSecondaryYields": true,
