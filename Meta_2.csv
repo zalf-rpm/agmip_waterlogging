@@ -1,0 +1,14 @@
+Treatment_number,suite_name,name_of_experiment,treatment_name,cultivar_name,institute_name,field_country,site_name,experiment_name_local,experiment_duration,field_latitude,field_longitude,field_elevation,weather_station_code,soil_profile_ID
+TRTNO,SUITE_NAME,EXNAME,TRT_NAME,CUL_NAME,INSTITUTION,FL_LOC_1,SITE_NAME,LOCAL_NAME,EXP_DUR,FL_LAT,FL_LONG,FLELE,WST_ID,SOIL_ID
+1,Sens_clay,Sens_clay,Sens_clay,soissons,uleida,Spain,uleida,Sens_clay,300,41.6,0.62,77,LLEI,CH5531001
+2,Sens_clay_50mm,Sens_clay_50mm,Sens_sand_50mm,soissons,uleida,Spain,uleida,Sens_sand_50mm,300,41.6,0.62,77,LLEI_50mm,CH5531001
+3,Sens_clay_150mm,Sens_clay_150mm,Sens_sand_150mm,soissons,uleida,Spain,uleida,Sens_sand_150mm,300,41.6,0.62,77,LLEI_150mm,CH5531001
+4,Sens_clay_300mm,Sens_clay_300mm,Sens_sand_300mm,soissons,uleida,Spain,uleida,Sens_sand_300mm,300,41.6,0.62,77,LLEI_300mm,CH5531001
+5,Sens_clay_500mm,Sens_clay_500mm,Sens_sand_500mm,soissons,uleida,Spain,uleida,Sens_sand_500mm,300,41.6,0.62,77,LLEI_500mm,CH5531001
+6,Sens_clay_1000mm,Sens_clay_1000mm,Sens_sand_1000mm,soissons,uleida,Spain,uleida,Sens_sand_1000mm,300,41.6,0.62,77,LLEI_1000mm,CH5531001
+7,Sens_sand0,Sens_sand0,Sens_sand0,soissons,uleida,Spain,uleida,Sens_sand0,300,41.6,0.62,77,LLEI,LLWatelg01
+8,Sens_sand_50mm,Sens_sand_50mm,Sens_sand_50mm,soissons,uleida,Spain,uleida,Sens_sand_50mm,300,41.6,0.62,77,LLEI_50mm,LLWatelg01
+9,Sens_sand_150mm,Sens_sand_150mm,Sens_sand_150mm,soissons,uleida,Spain,uleida,Sens_sand_150mm,300,41.6,0.62,77,LLEI_150mm,LLWatelg01
+10,Sens_sand_300mm,Sens_sand_300mm,Sens_sand_300mm,soissons,uleida,Spain,uleida,Sens_sand_300mm,300,41.6,0.62,77,LLEI_300mm,LLWatelg01
+11,Sens_sand_500mm,Sens_sand_500mm,Sens_sand_500mm,soissons,uleida,Spain,uleida,Sens_sand_500mm,300,41.6,0.62,77,LLEI_500mm,LLWatelg01
+12,Sens_sand_1000mm,Sens_sand_1000mm,Sens_sand_1000mm,soissons,uleida,Spain,uleida,Sens_sand_1000mm,300,41.6,0.62,77,LLEI_1000mm,LLWatelg01
