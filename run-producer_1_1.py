@@ -43,14 +43,14 @@ async def run_producer(server=None, port=None, calibration=False):
         "server-port": port if port else "6666",
         "server": server if server else "localhost",
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
-        "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
+        "crop.json": os.path.join(os.path.dirname(__file__), "crop_1_1.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
         #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
         "monica_path_to_climate_dir": "C:/Users/palka/GitHub/agmip_waterlogging/data",
         #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
-        "treatments": "[1]",
+        "treatments": "[]",
         "reader_sr": None,
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)

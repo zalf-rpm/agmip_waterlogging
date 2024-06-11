@@ -43,14 +43,14 @@ async def run_producer(server=None, port=None, calibration=False):
         "server-port": port if port else "6666",
         "server": server if server else "localhost",
         "sim.json": os.path.join(os.path.dirname(__file__), "sim.json"),
-        "crop.json": os.path.join(os.path.dirname(__file__), "crop.json"),
+        "crop.json": os.path.join(os.path.dirname(__file__), "crop_2.json"),
         "site.json": os.path.join(os.path.dirname(__file__), "site.json"),
         #"monica_path_to_climate_dir": "C:/Users/berg/Documents/GitHub/agmip_waterlogging/data",
         "monica_path_to_climate_dir": "C:/Users/palka/GitHub/agmip_waterlogging/data",
         #"monica_path_to_climate_dir": "/home/berg/GitHub/agmip_waterlogging/data",
         "path_to_data_dir": "./data/",
         "path_to_out": "out/",
-        "treatments": "[1]",
+        "treatments": "[]",
         "reader_sr": None,
     }
     shared.update_config(config, sys.argv, print_config=True, allow_new_keys=False)
@@ -119,7 +119,7 @@ async def run_producer(server=None, port=None, calibration=False):
             soil_profiles[soil_name].append(layer)
 
     trt_no_to_fertilizers = defaultdict(dict)
-    with open(f"{config['path_to_data_dir']}/Fertilizers.csv") as file:
+    with open(f"{config['path_to_data_dir']}/Fertilizers_2.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)
@@ -134,7 +134,7 @@ async def run_producer(server=None, port=None, calibration=False):
             trt_no_to_fertilizers[trt_no][fert_temp["date"]] = fert_temp
 
     trt_no_to_irrigation = defaultdict(dict)
-    with open(f"{config['path_to_data_dir']}/Irrigations.csv") as file:
+    with open(f"{config['path_to_data_dir']}/Irrigations_2.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)
@@ -148,7 +148,7 @@ async def run_producer(server=None, port=None, calibration=False):
             trt_no_to_irrigation[trt_no][irrig_temp["date"]] = irrig_temp
 
     trt_no_to_plant = defaultdict(dict)
-    with open(f"{config['path_to_data_dir']}/Plantings.csv") as file:
+    with open(f"{config['path_to_data_dir']}/Plantings_2.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)
@@ -165,7 +165,7 @@ async def run_producer(server=None, port=None, calibration=False):
             
 
     trt_no_to_meta = defaultdict(dict)
-    with open(f"{config['path_to_data_dir']}/Meta.csv") as file:
+    with open(f"{config['path_to_data_dir']}/Meta_2.csv") as file:
         dialect = csv.Sniffer().sniff(file.read(), delimiters=';,\t')
         file.seek(0)
         reader = csv.reader(file, dialect)

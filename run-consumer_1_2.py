@@ -48,7 +48,7 @@ def run_consumer(server=None, port=None):
             print(f"{os.path.basename(__file__)} Couldn't create dir {path_to_out_dir}! Exiting.")
             exit(1)
 
-    daily_filepath = f"{path_to_out_dir}/Ex_1a_Daily_MONICA_calib_Results.csv"
+    daily_filepath = f"{path_to_out_dir}/Ex_1b_Daily_MONICA_calib_Results.csv"
     daily_f = open(daily_filepath, "wt", newline="", encoding="utf-8")
     daily_f.write(
         "Tret: 1 to 13,Day after planting,Zadocks phenology stage,Total above biomass,Leaf Area Index,Daily transpiration,Actual evapotranspiration,Runoff,Deep Percolation,N Leaching,Soil Water Content_layer_1,Soil Water Content_layer_2,Soil Water Content_layer_3,Soil Water Content_layer_4,Soil Water Content_layer_5,Soil Water Content_layer_6,Soil Water Content_layer_7,Soil Water Content_layer_8,Soil Water Content_layer_9,Soil Water Content_layer_10,Soil Water Content_layer_11,Soil Water Content_layer_12,Soil Water Content_layer_13,Soil Water Content_layer_14,Soil Water Content_layer_15\n")
@@ -57,7 +57,7 @@ def run_consumer(server=None, port=None):
     daily_f.flush()
     daily_writer = csv.writer(daily_f, delimiter=",")
 
-    crop_filepath = f"{path_to_out_dir}/Ex_1a_MONICA_calib_Results.csv"
+    crop_filepath = f"{path_to_out_dir}/Ex_1b_MONICA_calib_Results.csv"
     crop_f = open(crop_filepath, "wt", newline="", encoding="utf-8")
     crop_f.write(
         ",Grain yield,Grain number ,grain unit weight ,Maximum Leaf Area Index,Total biomass at maturity ,Root Biomass\n") ##This needs to change##
@@ -96,6 +96,9 @@ def run_consumer(server=None, port=None):
                 "CH5531001": [(5, 0), (10, 0), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5), (70, 6),
                               (90, (7, 8)), (110, (9, 10)), (130, (11, 12)), (150, (13, 14)),
                               (170, (15, 16)), (190, (17, 18)), (210, 19)],
+                "CH5531002": [(5, 0), (10, 0), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5), (70, 6),
+                              (90, (7, 8)), (110, (9, 10)), (130, (11, 12)), (150, (13, 14)),
+                              (170, (15, 16)), (190, (17, 18)), (210, 19)],  
                 "LLWatelg": [(5, 0), (15, (0, 1)), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5),
                                (70, 6), (90, (7, 8)), (110, (9, 10)), (125, (11, 13))],
                 "LLWatelg01": [(5, 0), (15, (0, 1)), (20, 1), (30, 2), (40, 3), (50, 4), (60, 5),
